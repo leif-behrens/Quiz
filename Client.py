@@ -80,6 +80,7 @@ class Client(QMainWindow):
 
                 except Exception as e:
                     print(e)
+                    
 
     def init_layouts(self):
         self.home_layout()
