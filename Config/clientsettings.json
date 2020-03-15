@@ -4,11 +4,12 @@
         "port": 50000
     },
     "usersettings": {
-        "username": "lbehrens",
+        "username": "lbehrens2",
         "password": "Hallo123"
     },
     "generalsettings": {
         "autologin": true,
-        "rememberdata": false
+        "rememberdata": true,
+        "autoconnect": true
     }
 }

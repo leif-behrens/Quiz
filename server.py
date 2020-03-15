@@ -63,16 +63,50 @@ class Server:
             threading._start_new_thread(self.new_client_connection, (client, addr))
 
     def new_client_connection(self, client, addr):
+        """
+        Sobald ein Client connected, wird diese Methode im neuen Thread aufgerufen
+        """
         print(f"Neue eingehende Verbindung von {addr[0]}:{addr[1]}")
-        data = client.recv(1024)
-        authentication = pickle.loads(data)
+        
 
-        access = self.check_credentials(*authentication)
+        while True:
+            # Es wird auf neue Daten gewartet. Es handelt sich um vordefinierte Commands
+            try:
+                data = pickle.loads(client.recv(1024))
+                print(data)
 
-        client.send(pickle.dumps(access))
+                if not data:
+                    client.close()
 
-        if not authentication:
-            client.close()
+                if data == 1:
+                    # Neues Quiz
+                    pass
+
+                elif data == 2:
+                    # Highscoreliste
+                    pass
+
+                elif data == 3:
+                    # Neue Frage erstellen
+                    pass
+
+                elif data == 4:
+                    # Frage bearbeiten/löschen
+                    pass
+                
+                elif data == 5:
+                    # Login
+                    client.send("Login".encode())
+                    data = pickle.loads(client.recv(2**12))
+                    
+                    access = self.check_credentials(*data)
+                    client.send(pickle.dumps(access))
+
+            except Exception as e:
+                client.close()
+                break
+                print(e)
+        
 
     def check_credentials(self, username, password):
         person = PersonDatabase("Database/user.db")
@@ -225,12 +259,13 @@ class PersonDatabase:
         self._cur.execute(query, (username,))
 
         data = self._cur.fetchone()
+        
 
         if data is None:
             return False
 
         else:
-            if hashed_password == data:
+            if hashed_password == data[0]:
                 return True
             else:
                 return False

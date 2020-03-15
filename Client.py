@@ -27,6 +27,9 @@ class Client(QMainWindow):
         self.connected = False
         self.authenticated = False
 
+        self.conn_tries = 0
+        self.auth_tries = 0        
+
         if os.path.exists("Config/clientsettings.json"):
             with open("Config/clientsettings.json", "r+") as f:
                 try:
@@ -38,6 +41,12 @@ class Client(QMainWindow):
                     self.le_password.setText(str(self.settings.get("usersettings").get("password")))
                     self.cb_autologin.setChecked(self.settings.get("generalsettings").get("autologin"))
                     self.cb_remember_data.setChecked(self.settings.get("generalsettings").get("rememberdata"))
+                    self.cb_autoconnect.setChecked(self.settings.get("generalsettings").get("autoconnect"))
+                    
+                    if self.settings.get("generalsettings").get("autoconnect"):
+                        self.connect_to_server()
+
+
 
                 except Exception as e:
                     self.settings = {}
@@ -46,7 +55,7 @@ class Client(QMainWindow):
             self.settings = {}
 
         self.timer_connect = QTimer()
-        self.timer_connect.timeout.connect(self.connect_to_server)
+        self.timer_connect.timeout.connect(self._update)
         self.timer_connect.start(5000)
             
 
@@ -55,32 +64,61 @@ class Client(QMainWindow):
             if self.settings:
                 if self.settings.get("generalsettings").get("autologin"):
                     try:
-                        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        self.client.connect((self.settings.get("serversettings").get("ip"), self.settings.get("serversettings").get("port")))
-                        self.connected = True
+                        if self.auth_tries >= 3:
+                            pass
 
-                        self.authentication()
+                        else:
+                            self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                            self.client.connect((self.settings.get("serversettings").get("ip"), self.settings.get("serversettings").get("port")))
+                            self.connected = True
+
+                            self.lb_server_status.setText(f"Verbunden mit Server '{self.settings.get('serversettings').get('ip')}:{self.settings.get('serversettings').get('port')}'")
+                            self.lb_server_status.setStyleSheet("color: green")
+                            if self.settings.get("generalsettings").get("autologin"):
+                                self.authentication()
+
                     except Exception as e:
+                        self.auth_tries += 1
                         print(e)
     
     def authentication(self):
         if self.connected:
             if self.settings:
                 try:
-                    credentials = [self.settings.get("usersettings").get("username"), self.settings.get("usersettings").get("password")]
-                    pickled = pickle.dumps(credentials)
-                    
-                    try:
-                        self.client.send(pickled)
-                        self.authenticated = pickle.loads(self.client.recv(1024))
-                        print(self.authenticated)
-                    except Exception as e:
-                        self.connected = False
-                        print(e)
+                    if self.auth_tries >= 3:
+                        pass
+
+                    else:
+                        self.client.send(pickle.dumps(5))
+                        self.client.recv(1024)
+
+                        credentials = [self.settings.get("usersettings").get("username"), self.settings.get("usersettings").get("password")]
+                        pickled = pickle.dumps(credentials)
+                        
+                        try:
+                            self.client.send(pickled)
+                            self.authenticated = pickle.loads(self.client.recv(1024))
+                            if self.authenticated:
+                                self.lb_login_status.setText(f"Angemeldet als '{self.settings.get('usersettings').get('username')}'")
+                                self.lb_login_status.setStyleSheet("color: green")
+
+                        except Exception as e:
+                            self.auth_tries += 1    
+                            print(e)
 
                 except Exception as e:
                     print(e)
-                    
+
+
+    def _update(self):
+        try:
+            if self.settings:
+                for setting in self.settings.items():
+                    print(setting)
+
+        except Exception as e:
+            print(e)
+
 
     def init_layouts(self):
         self.home_layout()
@@ -141,6 +179,20 @@ class Client(QMainWindow):
         hbox5.addWidget(btn_login)
         hbox5.addStretch()
 
+        hbox6 = QHBoxLayout()
+        self.lb_server_status = QLabel("Zurzeit mit keinem Server verbunden")
+        self.lb_server_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
+        self.lb_server_status.setStyleSheet("color: red")
+        hbox6.addStretch()
+        hbox6.addWidget(self.lb_server_status)
+
+        hbox7 = QHBoxLayout()
+        self.lb_login_status = QLabel("Nicht angemeldet")
+        self.lb_login_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
+        self.lb_login_status.setStyleSheet("color: red")
+        hbox7.addStretch()
+        hbox7.addWidget(self.lb_login_status)
+
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox_space)
         vbox.addLayout(hbox1)
@@ -149,6 +201,8 @@ class Client(QMainWindow):
         vbox.addLayout(hbox4)
         vbox.addLayout(hbox5)
         vbox.addStretch()
+        vbox.addLayout(hbox6)
+        vbox.addLayout(hbox7)        
 
         self.home_widget.setLayout(vbox)
 
@@ -312,9 +366,11 @@ class Client(QMainWindow):
 
         self.cb_remember_data = QCheckBox("Daten merken")
         self.cb_autologin = QCheckBox("Automatischer Login")
+        self.cb_autoconnect = QCheckBox("Automatisch Verbindung zum Server aufbauen")
         
         hbox5.addWidget(self.cb_remember_data)
         hbox5.addWidget(self.cb_autologin)
+        hbox5.addWidget(self.cb_autoconnect)
         hbox5.addStretch()
 
 
