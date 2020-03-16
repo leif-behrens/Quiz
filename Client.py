@@ -40,7 +40,6 @@ class Client(QMainWindow):
                     self.le_username.setText(str(self.settings.get("usersettings").get("username")))
                     self.le_password.setText(str(self.settings.get("usersettings").get("password")))
                     self.cb_autologin.setChecked(self.settings.get("generalsettings").get("autologin"))
-                    self.cb_remember_data.setChecked(self.settings.get("generalsettings").get("rememberdata"))
                     self.cb_autoconnect.setChecked(self.settings.get("generalsettings").get("autoconnect"))
                     
                     if self.settings.get("generalsettings").get("autoconnect"):
@@ -62,59 +61,113 @@ class Client(QMainWindow):
     def connect_to_server(self):
         if not self.connected:
             if self.settings:
-                if self.settings.get("generalsettings").get("autologin"):
-                    try:
-                        if self.auth_tries >= 3:
-                            pass
-
-                        else:
-                            self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                            self.client.connect((self.settings.get("serversettings").get("ip"), self.settings.get("serversettings").get("port")))
-                            self.connected = True
-
-                            self.lb_server_status.setText(f"Verbunden mit Server '{self.settings.get('serversettings').get('ip')}:{self.settings.get('serversettings').get('port')}'")
-                            self.lb_server_status.setStyleSheet("color: green")
-                            if self.settings.get("generalsettings").get("autologin"):
-                                self.authentication()
-
-                    except Exception as e:
-                        self.auth_tries += 1
-                        print(e)
-    
-    def authentication(self):
-        if self.connected:
-            if self.settings:
                 try:
                     if self.auth_tries >= 3:
                         pass
 
                     else:
-                        self.client.send(pickle.dumps(5))
-                        self.client.recv(1024)
+                        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        self.client.connect((self.settings.get("serversettings").get("ip"), self.settings.get("serversettings").get("port")))
+                        self.connected = True
 
-                        credentials = [self.settings.get("usersettings").get("username"), self.settings.get("usersettings").get("password")]
-                        pickled = pickle.dumps(credentials)
-                        
-                        try:
-                            self.client.send(pickled)
-                            self.authenticated = pickle.loads(self.client.recv(1024))
-                            if self.authenticated:
-                                self.lb_login_status.setText(f"Angemeldet als '{self.settings.get('usersettings').get('username')}'")
-                                self.lb_login_status.setStyleSheet("color: green")
-
-                        except Exception as e:
-                            self.auth_tries += 1    
-                            print(e)
+                        self.lb_server_status.setText(f"Verbunden mit Server '{self.settings.get('serversettings').get('ip')}:{self.settings.get('serversettings').get('port')}'")
+                        self.lb_server_status.setStyleSheet("color: green")
+                        if self.settings.get("generalsettings").get("autologin"):
+                            self.authentication()
+                        else:
+                            self.authenticated = False
 
                 except Exception as e:
+                    self.auth_tries += 1
+                    self.connected = False
+                    self.authenticated = False
+                    self.lb_server_status.setText("Mit keinem Server verbunden")
+                    self.lb_server_status.setStyleSheet("color: red")
+                    
+                    self.lb_login_status.setText("Nicht angemeldet")
+                    self.lb_login_status.setStyleSheet("color: red")
+                    self.client.close()
+                    
                     print(e)
+        
+        else:
+            self.connected = False
+            self.authenticated = False
+            self.auth_tries = 0
+            self.conn_tries = 0
+            self.connect_to_server()
+            self.authentication()
+            
+            
+    
+    def authentication(self):
+        if self.connected:
+            if not self.authenticated:
+                if self.settings:
+                    try:
+                        if self.auth_tries >= 3:
+                            pass
 
+                        else:
+                            self.client.send(pickle.dumps(5))
+                            self.client.recv(1024)
 
+                            credentials = [self.settings.get("usersettings").get("username"), self.settings.get("usersettings").get("password")]
+                            pickled = pickle.dumps(credentials)
+                            
+                            try:
+                                self.client.send(pickled)
+                                self.authenticated = pickle.loads(self.client.recv(1024))
+                                
+                                if self.authenticated:
+                                    self.lb_login_status.setText(f"Angemeldet als '{self.settings.get('usersettings').get('username')}'")
+                                    self.lb_login_status.setStyleSheet("color: green")
+                                else:
+                                    self.lb_login_status.setText("Nicht angemeldet")
+                                    self.lb_login_status.setStyleSheet("color: red")
+                                    
+
+                            except Exception as e:
+                                self.auth_tries += 1    
+                                print(e)
+
+                    except Exception as e:
+                        print(e)
+
+    def save_execute_config(self):
+        if os.path.exists("Config/clientsettings.json"):
+            try:
+                temp_config = {"serversettings": {},
+                               "usersettings": {},
+                               "generalsettings": {}}
+                
+                temp_config["serversettings"]["ip"] = self.le_ip.text()
+                temp_config["serversettings"]["port"] = int(self.le_port.text())
+                temp_config["usersettings"]["username"] = self.le_username.text()
+                temp_config["usersettings"]["password"] = self.le_password.text()
+                temp_config["generalsettings"]["autologin"] = self.cb_autologin.isChecked()
+                temp_config["generalsettings"]["autoconnect"] = self.cb_autoconnect.isChecked()
+                
+                with open("Config/clientsettings.json", "w") as f:
+                    json.dump(temp_config, f, indent=4)
+                    
+                self.settings = temp_config
+                    
+                self.connect_to_server()
+                
+                self.show_home()
+                    
+            except Exception as e:
+                self.settings = {}
+                print(e)
+        else:
+            self.settings = {}
+    
     def _update(self):
         try:
             if self.settings:
-                for setting in self.settings.items():
-                    print(setting)
+                for k, v in self.settings.items():
+                    pass
 
         except Exception as e:
             print(e)
@@ -208,12 +261,46 @@ class Client(QMainWindow):
 
     def new_quiz_layout(self):
         self.new_quiz_widget = QWidget(self)
+        
+        vbox = QVBoxLayout()
+        
+        hbox = QHBoxLayout()
+        btn_save = QPushButton("Speichern")
+        # btn_save.clicked.connect()
+        btn_cancel = QPushButton("Abbrechen")
+        btn_cancel.clicked.connect(self.show_home)
+        
+        hbox.addStretch()
+        hbox.addWidget(btn_save)
+        hbox.addWidget(btn_cancel)
+        
+        vbox.addStretch()
+        vbox.addLayout(hbox)
+        
+        self.new_quiz_widget.setLayout(vbox)
 
         self.new_quiz_widget.hide()
 
     def highscore_layout(self):
         self.highscore_widget = QWidget(self)
-
+        
+        vbox = QVBoxLayout()
+        
+        hbox = QHBoxLayout()
+        btn_save = QPushButton("Speichern")
+        # btn_save.clicked.connect()
+        btn_cancel = QPushButton("Abbrechen")
+        btn_cancel.clicked.connect(self.show_home)
+        
+        hbox.addStretch()
+        hbox.addWidget(btn_save)
+        hbox.addWidget(btn_cancel)
+        
+        vbox.addStretch()
+        vbox.addLayout(hbox)
+        
+        self.highscore_widget.setLayout(vbox)
+        
         self.highscore_widget.hide()
 
     def new_question_layout(self):
@@ -293,7 +380,24 @@ class Client(QMainWindow):
     
     def edit_question_layout(self):
         self.edit_question_widget = QWidget(self)
-
+        
+        vbox = QVBoxLayout()        
+        
+        hbox = QHBoxLayout()
+        btn_save = QPushButton("Speichern")
+        # btn_save.clicked.connect()
+        btn_cancel = QPushButton("Abbrechen")
+        btn_cancel.clicked.connect(self.show_home)
+        
+        hbox.addStretch()
+        hbox.addWidget(btn_save)
+        hbox.addWidget(btn_cancel)
+        
+        vbox.addStretch()
+        vbox.addLayout(hbox)
+        
+        self.edit_question_widget.setLayout(vbox)
+        
         self.edit_question_widget.hide()
 
     def login_layout(self):
@@ -364,11 +468,9 @@ class Client(QMainWindow):
 
         hbox5 = QHBoxLayout()
 
-        self.cb_remember_data = QCheckBox("Daten merken")
         self.cb_autologin = QCheckBox("Automatischer Login")
         self.cb_autoconnect = QCheckBox("Automatisch Verbindung zum Server aufbauen")
         
-        hbox5.addWidget(self.cb_remember_data)
         hbox5.addWidget(self.cb_autologin)
         hbox5.addWidget(self.cb_autoconnect)
         hbox5.addStretch()
@@ -377,7 +479,7 @@ class Client(QMainWindow):
         hbox6 = QHBoxLayout()
         
         btn_save = QPushButton("Speichern und Ausführen")
-        #btn_save.clicked.connect()
+        btn_save.clicked.connect(self.save_execute_config)
         btn_cancel = QPushButton("Abbrechen")
         btn_cancel.clicked.connect(self.show_home)
         hbox6.addStretch()
@@ -459,15 +561,15 @@ class Client(QMainWindow):
         self.new_question_widget.hide()
         self.edit_question_widget.hide()
         self.login_widget.hide()
-
+        
         self.login_widget.show()
 
-    def resizeEvent(self, event):        
+    def resizeEvent(self, event):
         self.width = self.frameGeometry().width()
         self.height = self.frameGeometry().height()
         
         self.home_widget.resize(self.width, self.height-25)
-        self.new_question_widget.resize(self.width, self.height-25)
+        self.new_quiz_widget.resize(self.width, self.height-25)
         self.highscore_widget.resize(self.width, self.height-25)
         self.new_question_widget.resize(self.width, self.height-25)
         self.edit_question_widget.resize(self.width, self.height-25)

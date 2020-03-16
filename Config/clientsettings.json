@@ -9,7 +9,6 @@
     },
     "generalsettings": {
         "autologin": true,
-        "rememberdata": true,
         "autoconnect": true
     }
 }
