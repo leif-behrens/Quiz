@@ -181,12 +181,27 @@ class Client(QMainWindow):
                         self.client.send(pickle.dumps(3))
                         self.client.recv(1024)
 
-                        data = (self.le_question.text(), self.le_correct_answer.text(),
-                                self.le_wrong_answer_1.text(), self.le_wrong_answer_2.text(),
+                        data = (self.le_question.text(), self.le_wrong_answer_1.text(),
                                 self.le_wrong_answer_2.text(), self.le_wrong_answer_3.text(),
-                                self.le_category.text(), self.le_username.text())
+                                self.le_correct_answer.text(), self.le_category.text(), 
+                                self.le_username.text())
                         
                         self.client.send(pickle.dumps(data))
+
+                        response = pickle.loads(self.client.recv(4096))
+                        
+                        if response[0]:
+                            print("Frage erfolgreich gespeichert")
+                        else:
+                            print(f"Fehler ist aufgetreten: {response[1]}")
+                            
+                        self.le_question.clear()
+                        self.le_correct_answer.clear()
+                        self.le_wrong_answer_1.clear()
+                        self.le_wrong_answer_2.clear()
+                        self.le_wrong_answer_3.clear()
+                        self.le_category.clear()
+                        self.show_home()
 
                     else:
                         print("Falsche Eingabe")

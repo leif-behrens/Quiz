@@ -91,7 +91,12 @@ class Server:
                     client.send("Neue Frage".encode())
 
                     data = pickle.loads(client.recv(2**12))
-                    print(data)
+                    
+                    quiz = QuizDatabase("Database/quiz.db", data[-1])
+                    insert_question = quiz.new_question(*data[0:-1])
+                    
+                    client.send(pickle.dumps(insert_question))
+                    quiz._conn.close()
 
                 elif data == 4:
                     # Frage bearbeiten/löschen
@@ -126,6 +131,8 @@ class Server:
 
         else:
             return access, False
+        
+        person._conn.close()
 
 
 class QuizDatabase:
@@ -212,10 +219,6 @@ class QuizDatabase:
             except Exception as e:
                 return False, e
     
-    def __enter__(self):
-        return self._conn
-    
-    def __exit__(self, type, value, traceback):
         self._conn.close()        
 
     def __del__(self):
@@ -285,8 +288,8 @@ class PersonDatabase:
 
 
 if __name__ == "__main__":
-    # s = Server()
-    # s.run()
-    d = QuizDatabase("Database/quiz.db", "lbehrens2")
-    print(d.new_question("Aadfsdfsdf", "sdfew", "q", "xvbftg", "rgeergerge", "23234"))
+    s = Server()
+    s.run()
+    # d = QuizDatabase("Database/quiz.db", "lbehrens2")
+    # print(d.new_question("Aadfsdfsdf", "sdfew", "q", "xvbftg", "rgeergerge", "23234"))
     
