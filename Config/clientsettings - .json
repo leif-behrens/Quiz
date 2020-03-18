@@ -1,0 +1,14 @@
+{
+    "serversettings": {
+        "ip": "localhost",
+        "port": 50000
+    },
+    "usersettings": {
+        "username": "lbehrens2",
+        "password": "Hallo123"
+    },
+    "generalsettings": {
+        "autologin": true,
+        "autoconnect": true
+    }
+}

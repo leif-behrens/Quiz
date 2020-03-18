@@ -5,6 +5,7 @@ import json
 import threading
 import os
 import hashlib
+import time
 
 # Decorator
 def check_permission(username, password):
@@ -73,7 +74,6 @@ class Server:
             # Es wird auf neue Daten gewartet. Es handelt sich um vordefinierte Commands
             try:
                 data = pickle.loads(client.recv(1024))
-                print(data)
 
                 if not data:
                     client.close()
@@ -88,7 +88,10 @@ class Server:
 
                 elif data == 3:
                     # Neue Frage erstellen
-                    pass
+                    client.send("Neue Frage".encode())
+
+                    data = pickle.loads(client.recv(2**12))
+                    print(data)
 
                 elif data == 4:
                     # Frage bearbeiten/löschen
@@ -115,16 +118,19 @@ class Server:
         hashed_password.update(password.encode("utf-8"))
 
         access = person.check_access(username, hashed_password.hexdigest())
-        return access
+        
+        if access:
+            person._cur.execute("SELECT admin FROM user WHERE username = ?", (username,))
+
+            return access, eval(person._cur.fetchone()[0])
+
+        else:
+            return access, False
 
 
 class QuizDatabase:
-    def __init__(self, database, username=None, password=None):
+    def __init__(self, database, username):
         self.username = username
-        self.password = password
-
-        person = PersonDatabase("Database/users.db")
-        self.permission = person.check_access(username, password)
 
         # Initialize SQLite3-Connection and create cursor
         self._conn = sqlite3.connect(database)
@@ -140,7 +146,6 @@ class QuizDatabase:
             wrong_answer_3 TEXT,
             correct_answer TEXT,
             category TEXT,
-            difficulty_level INTEGER,
             author TEXT,
             editor TEXT,
             timestamp_creation INTEGER,
@@ -151,32 +156,31 @@ class QuizDatabase:
         self._cur.execute(query)
         self._conn.commit()
 
-    def new_question(self, question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer, category, difficulty_level):
-        if self.permission:
-            query = """
-            INSERT INTO quiz (
-                question,
-                wrong_answer_1,
-                wrong_answer_2,
-                wrong_answer_3,
-                correct_answer,
-                category,
-                difficulty_level,
-                author,
-                editor,
-                timestamp_creation,
-                timestamp_lastchange
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """
-            
-            try:
-                self._cur.execute(query, (question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer, category, difficulty_level, self.username, self.username, int(time.time()), int(time.time)))
-                self._conn.commit()
-                
-                return True, ""
+    def new_question(self, question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer, category):
 
-            except Exception as e:
-                return False, e
+        query = """
+        INSERT INTO quiz (
+            question,
+            wrong_answer_1,
+            wrong_answer_2,
+            wrong_answer_3,
+            correct_answer,
+            category,
+            author,
+            editor,
+            timestamp_creation,
+            timestamp_lastchange
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        
+        try:
+            self._cur.execute(query, (question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer, category, self.username, self.username, int(time.time()), int(time.time())))
+            self._conn.commit()
+            
+            return True, ""
+
+        except Exception as e:
+            return False, e
     
     def change_question(self, primarykey, column, new_value):
         if self.permission:
@@ -208,6 +212,15 @@ class QuizDatabase:
             except Exception as e:
                 return False, e
     
+    def __enter__(self):
+        return self._conn
+    
+    def __exit__(self, type, value, traceback):
+        self._conn.close()        
+
+    def __del__(self):
+        self._conn.close()
+
 
 class PersonDatabase:
     def __init__(self, database, admin=False):
@@ -272,8 +285,8 @@ class PersonDatabase:
 
 
 if __name__ == "__main__":
-    s = Server()
-    s.run()
-    # d = QuizDatabase("Database/quiz.db")
-    # print(d.new_question("owqnf", "ik", "omo", "oikm", "ownergfiou", "aaa", 13))
-    # d.change_question(1, "question", "qssdfsf")
+    # s = Server()
+    # s.run()
+    d = QuizDatabase("Database/quiz.db", "lbehrens2")
+    print(d.new_question("Aadfsdfsdf", "sdfew", "q", "xvbftg", "rgeergerge", "23234"))
+    

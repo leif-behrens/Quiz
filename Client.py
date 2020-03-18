@@ -26,6 +26,7 @@ class Client(QMainWindow):
 
         self.connected = False
         self.authenticated = False
+        self.admin = False
 
         self.conn_tries = 0
         self.auth_tries = 0        
@@ -97,9 +98,7 @@ class Client(QMainWindow):
             self.conn_tries = 0
             self.connect_to_server()
             self.authentication()
-            
-            
-    
+             
     def authentication(self):
         if self.connected:
             if not self.authenticated:
@@ -114,18 +113,19 @@ class Client(QMainWindow):
 
                             credentials = [self.settings.get("usersettings").get("username"), self.settings.get("usersettings").get("password")]
                             pickled = pickle.dumps(credentials)
-                            
+
                             try:
                                 self.client.send(pickled)
-                                self.authenticated = pickle.loads(self.client.recv(1024))
+                                response = pickle.loads(self.client.recv(1024))
+                                self.authenticated = response[0]
+                                self.admin = response[1]
                                 
                                 if self.authenticated:
                                     self.lb_login_status.setText(f"Angemeldet als '{self.settings.get('usersettings').get('username')}'")
                                     self.lb_login_status.setStyleSheet("color: green")
                                 else:
                                     self.lb_login_status.setText("Nicht angemeldet")
-                                    self.lb_login_status.setStyleSheet("color: red")
-                                    
+                                    self.lb_login_status.setStyleSheet("color: red")          
 
                             except Exception as e:
                                 self.auth_tries += 1    
@@ -133,6 +133,64 @@ class Client(QMainWindow):
 
                     except Exception as e:
                         print(e)
+
+    def save_new_question(self):
+        if self.connected:
+            if self.authenticated:
+                if self.admin:
+                    # Check der Eingabedaten
+                    check_entry = True
+
+                    if not self.le_question.text().split():
+                        self.le_question.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_question.setStyleSheet("border: 1px solid black")
+                    
+                    if not self.le_correct_answer.text().split():
+                        self.le_correct_answer.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_correct_answer.setStyleSheet("border: 1px solid black")
+                    
+                    if not self.le_wrong_answer_1.text().split():
+                        self.le_wrong_answer_1.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_wrong_answer_1.setStyleSheet("border: 1px solid black")
+
+                    if not self.le_wrong_answer_2.text().split():
+                        self.le_wrong_answer_2.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_wrong_answer_2.setStyleSheet("border: 1px solid black")
+
+                    if not self.le_wrong_answer_3.text().split():
+                        self.le_wrong_answer_3.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_wrong_answer_3.setStyleSheet("border: 1px solid black")
+
+                    if not self.le_category.text().split():
+                        self.le_category.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_category.setStyleSheet("border: 1px solid black")
+                    
+                    if check_entry:
+                        self.client.send(pickle.dumps(3))
+                        self.client.recv(1024)
+
+                        data = (self.le_question.text(), self.le_correct_answer.text(),
+                                self.le_wrong_answer_1.text(), self.le_wrong_answer_2.text(),
+                                self.le_wrong_answer_2.text(), self.le_wrong_answer_3.text(),
+                                self.le_category.text(), self.le_username.text())
+                        
+                        self.client.send(pickle.dumps(data))
+
+                    else:
+                        print("Falsche Eingabe")
+
 
     def save_execute_config(self):
         if os.path.exists("Config/clientsettings.json"):
@@ -171,7 +229,6 @@ class Client(QMainWindow):
 
         except Exception as e:
             print(e)
-
 
     def init_layouts(self):
         self.home_layout()
@@ -309,11 +366,13 @@ class Client(QMainWindow):
         
         vbox = QVBoxLayout()
 
+
         hbox0 = QHBoxLayout()
         lb_question = QLabel("Frage")
         lb_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))
         self.le_question = QLineEdit()
-        self.le_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.le_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))        
+        self.le_question.setStyleSheet("border: 1px solid black")
 
         hbox0.addWidget(lb_question)
         hbox0.addWidget(self.le_question)
@@ -321,16 +380,20 @@ class Client(QMainWindow):
         hbox_space = QHBoxLayout()
         hbox_space.addWidget(QLabel())
 
+
         hbox1 = QHBoxLayout()
         lb_correct_answer = QLabel("Richtige Antwort  ")
         lb_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))
         self.le_correct_answer = QLineEdit()
-        self.le_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))        
+        self.le_correct_answer.setStyleSheet("border: 1px solid black")
 
         lb_wrong_answer_1 = QLabel("Falsche Antwort 1")
         lb_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
         self.le_wrong_answer_1 = QLineEdit()
         self.le_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_wrong_answer_1.setStyleSheet("border: 1px solid black")
+        
         
         hbox1.addWidget(lb_correct_answer)
         hbox1.addWidget(self.le_correct_answer)
@@ -338,17 +401,20 @@ class Client(QMainWindow):
         hbox1.addWidget(lb_wrong_answer_1)
         hbox1.addWidget(self.le_wrong_answer_1)
 
+
         hbox2 = QHBoxLayout()
         
         lb_wrong_answer_2 = QLabel("Falsche Antwort 2")
         lb_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
         self.le_wrong_answer_2 = QLineEdit()
         self.le_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_wrong_answer_2.setStyleSheet("border: 1px solid black")
 
         lb_wrong_answer_3 = QLabel("Falsche Antwort 3")
         lb_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
         self.le_wrong_answer_3 = QLineEdit()
         self.le_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_wrong_answer_3.setStyleSheet("border: 1px solid black")
 
         hbox2.addWidget(lb_wrong_answer_2)
         hbox2.addWidget(self.le_wrong_answer_2)  
@@ -356,24 +422,40 @@ class Client(QMainWindow):
         hbox2.addWidget(lb_wrong_answer_3)
         hbox2.addWidget(self.le_wrong_answer_3)
 
+
         hbox3 = QHBoxLayout()
+
+        lb_category = QLabel("Kategory")
+        lb_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_category = QLineEdit()
+        self.le_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_category.setStyleSheet("border: 1px solid black")
+
+        hbox3.addWidget(lb_category)
+        hbox3.addWidget(self.le_category)
+
+
+        hbox4 = QHBoxLayout()
 
         btn_save = QPushButton("Speichern")
         btn_save.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        btn_save.clicked.connect(self.save_new_question)
+
         btn_cancel = QPushButton("Abbrechen")
         btn_cancel.clicked.connect(self.show_home)
         btn_cancel.setFont(QFont("Times New Roman", 12, QFont.Cursive))
     	
-        hbox3.addStretch()
-        hbox3.addWidget(btn_save)
-        hbox3.addWidget(btn_cancel)
+        hbox4.addStretch()
+        hbox4.addWidget(btn_save)
+        hbox4.addWidget(btn_cancel)
 
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox_space)
         vbox.addLayout(hbox1)
         vbox.addLayout(hbox2)
-        vbox.addStretch()
         vbox.addLayout(hbox3)
+        vbox.addStretch()
+        vbox.addLayout(hbox4)
         
         self.new_question_widget.setLayout(vbox)
         self.new_question_widget.hide()
@@ -535,24 +617,30 @@ class Client(QMainWindow):
         self.highscore_widget.show()
 
     def show_new_question(self):
-        self.home_widget.hide()
-        self.new_quiz_widget.hide()
-        self.highscore_widget.hide()
-        self.new_question_widget.hide()
-        self.edit_question_widget.hide()
-        self.login_widget.hide()
+        if self.admin:
+            self.home_widget.hide()
+            self.new_quiz_widget.hide()
+            self.highscore_widget.hide()
+            self.new_question_widget.hide()
+            self.edit_question_widget.hide()
+            self.login_widget.hide()
 
-        self.new_question_widget.show()
+            self.new_question_widget.show()
+        else:
+            print("Fehlende Rechte")
 
     def show_edit_question(self):
-        self.home_widget.hide()
-        self.new_quiz_widget.hide()
-        self.highscore_widget.hide()
-        self.new_question_widget.hide()
-        self.edit_question_widget.hide()
-        self.login_widget.hide()
+        if self.admin:
+            self.home_widget.hide()
+            self.new_quiz_widget.hide()
+            self.highscore_widget.hide()
+            self.new_question_widget.hide()
+            self.edit_question_widget.hide()
+            self.login_widget.hide()
 
-        self.edit_question_widget.show()
+            self.edit_question_widget.show()
+        else:
+            print("Fehlende Rechte")
 
     def show_login(self):
         self.home_widget.hide()
