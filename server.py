@@ -6,6 +6,7 @@ import threading
 import os
 import hashlib
 import time
+import random
 
 # Decorator
 def check_permission(username, password):
@@ -61,9 +62,9 @@ class Server:
     def run(self):
         while True:
             client, addr = self.sock.accept()                
-            threading._start_new_thread(self.new_client_connection, (client, addr))
+            threading._start_new_thread(self._new_client_connection, (client, addr))
 
-    def new_client_connection(self, client, addr):
+    def _new_client_connection(self, client, addr):
         """
         Sobald ein Client connected, wird diese Methode im neuen Thread aufgerufen
         """
@@ -80,7 +81,8 @@ class Server:
 
                 if data == 1:
                     # Neues Quiz
-                    pass
+                    client.send("Neues Quiz".encode())
+                    
 
                 elif data == 2:
                     # Highscoreliste

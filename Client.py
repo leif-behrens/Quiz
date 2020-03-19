@@ -236,6 +236,12 @@ class Client(QMainWindow):
         else:
             self.settings = {}
     
+    def _start_new_quiz(self):
+        self.client.send(pickle.dumps(1))
+        self.client.recv(1024)
+
+
+
     def _update(self):
         try:
             if self.settings:
@@ -337,13 +343,13 @@ class Client(QMainWindow):
         vbox = QVBoxLayout()
         
         hbox = QHBoxLayout()
-        btn_save = QPushButton("Speichern")
-        # btn_save.clicked.connect()
+        btn_start = QPushButton("Start")
+        # btn_start.clicked.connect()
         btn_cancel = QPushButton("Abbrechen")
         btn_cancel.clicked.connect(self.show_home)
         
         hbox.addStretch()
-        hbox.addWidget(btn_save)
+        hbox.addWidget(btn_start)
         hbox.addWidget(btn_cancel)
         
         vbox.addStretch()
