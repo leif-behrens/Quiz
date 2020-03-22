@@ -7,6 +7,7 @@ import os
 import hashlib
 import time
 import random
+import sys
 
 # Decorator
 def check_permission(username, password):
@@ -78,11 +79,19 @@ class Server:
 
                 if not data:
                     client.close()
+                    break
 
                 if data == 1:
                     # Neues Quiz
                     client.send("Neues Quiz".encode())
-                    
+                    username = pickle.loads(client.recv(1024))
+
+                    quiz = QuizDatabase("Database/quiz.db", username)
+                    quiz._cur.execute("SELECT * FROM quiz ORDER BY RANDOM() LIMIT 15")
+                    data = quiz._cur.fetchall()
+                    quiz._conn.close()
+
+                    client.send(pickle.dumps(data))
 
                 elif data == 2:
                     # Highscoreliste

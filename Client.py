@@ -6,6 +6,7 @@ import threading
 import os
 import sys
 import time
+import random
 
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -62,13 +63,16 @@ class Client(QMainWindow):
     def connect_to_server(self):
         if not self.connected:
             if self.settings:
-                try:
-                    if self.auth_tries >= 3:
-                        pass
+                
+                if self.auth_tries >= 3:
+                    pass
 
-                    else:
+                else:
+                    try:
                         self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                         self.client.connect((self.settings.get("serversettings").get("ip"), self.settings.get("serversettings").get("port")))
+                        self.client.settimeout(3)
+                        
                         self.connected = True
 
                         self.lb_server_status.setText(f"Verbunden mit Server '{self.settings.get('serversettings').get('ip')}:{self.settings.get('serversettings').get('port')}'")
@@ -78,18 +82,18 @@ class Client(QMainWindow):
                         else:
                             self.authenticated = False
 
-                except Exception as e:
-                    self.auth_tries += 1
-                    self.connected = False
-                    self.authenticated = False
-                    self.lb_server_status.setText("Mit keinem Server verbunden")
-                    self.lb_server_status.setStyleSheet("color: red")
-                    
-                    self.lb_login_status.setText("Nicht angemeldet")
-                    self.lb_login_status.setStyleSheet("color: red")
-                    self.client.close()
-                    
-                    print(e)
+                    except Exception as e:
+                        self.auth_tries += 1
+                        self.connected = False
+                        self.authenticated = False
+                        self.lb_server_status.setText("Mit keinem Server verbunden")
+                        self.lb_server_status.setStyleSheet("color: red")
+                        
+                        self.lb_login_status.setText("Nicht angemeldet")
+                        self.lb_login_status.setStyleSheet("color: red")
+                        self.client.close()
+                        
+                        print(e)
         
         else:
             self.connected = False
@@ -103,11 +107,12 @@ class Client(QMainWindow):
         if self.connected:
             if not self.authenticated:
                 if self.settings:
-                    try:
-                        if self.auth_tries >= 3:
-                            pass
+                    
+                    if self.auth_tries >= 3:
+                        pass
 
-                        else:
+                    else:
+                        try:
                             self.client.send(pickle.dumps(5))
                             self.client.recv(1024)
 
@@ -131,8 +136,8 @@ class Client(QMainWindow):
                                 self.auth_tries += 1    
                                 print(e)
 
-                    except Exception as e:
-                        print(e)
+                        except Exception as e:
+                            print(e)
 
     def save_new_question(self):
         if self.connected:
@@ -178,34 +183,47 @@ class Client(QMainWindow):
                         self.le_category.setStyleSheet("border: 1px solid black")
                     
                     if check_entry:
-                        self.client.send(pickle.dumps(3))
-                        self.client.recv(1024)
+                        try:
+                            self.client.send(pickle.dumps(3))
+                            self.client.recv(1024)
 
-                        data = (self.le_question.text(), self.le_wrong_answer_1.text(),
-                                self.le_wrong_answer_2.text(), self.le_wrong_answer_3.text(),
-                                self.le_correct_answer.text(), self.le_category.text(), 
-                                self.le_username.text())
-                        
-                        self.client.send(pickle.dumps(data))
+                            data = (self.le_question.text(), self.le_wrong_answer_1.text(),
+                                    self.le_wrong_answer_2.text(), self.le_wrong_answer_3.text(),
+                                    self.le_correct_answer.text(), self.le_category.text(), 
+                                    self.le_username.text())
+                                               
+                            self.client.send(pickle.dumps(data))
 
-                        response = pickle.loads(self.client.recv(4096))
-                        
-                        if response[0]:
-                            print("Frage erfolgreich gespeichert")
-                        else:
-                            print(f"Fehler ist aufgetreten: {response[1]}")
+                            response = pickle.loads(self.client.recv(4096))
                             
-                        self.le_question.clear()
-                        self.le_correct_answer.clear()
-                        self.le_wrong_answer_1.clear()
-                        self.le_wrong_answer_2.clear()
-                        self.le_wrong_answer_3.clear()
-                        self.le_category.clear()
-                        self.show_home()
+                            if response[0]:
+                                print("Frage erfolgreich gespeichert")
+                            else:
+                                print(f"Fehler ist aufgetreten: {response[1]}")
+                        
+                        except Exception as e:
+                            self.connected = False
+                            self.authenticated = False
+                            self.lb_server_status.setText("Mit keinem Server verbunden")
+                            self.lb_server_status.setStyleSheet("color: red")
+                            
+                            self.lb_login_status.setText("Nicht angemeldet")
+                            self.lb_login_status.setStyleSheet("color: red")
+                            self.client.close()
+                            print(e)
+                        
+                        finally:                                
+                            self.le_question.clear()
+                            self.le_correct_answer.clear()
+                            self.le_wrong_answer_1.clear()
+                            self.le_wrong_answer_2.clear()
+                            self.le_wrong_answer_3.clear()
+                            self.le_category.clear()
+                            self.show_home()
+                        
 
                     else:
                         print("Falsche Eingabe")
-
 
     def save_execute_config(self):
         if os.path.exists("Config/clientsettings.json"):
@@ -237,10 +255,45 @@ class Client(QMainWindow):
             self.settings = {}
     
     def _start_new_quiz(self):
-        self.client.send(pickle.dumps(1))
-        self.client.recv(1024)
+        try:
+            self.client.send(pickle.dumps(1))
+            self.client.recv(1024)
+            self.client.send(pickle.dumps(self.settings.get('usersettings').get('username')))
 
+            # Erhalte eine Liste mit Tuples für jede Frage (insgesamt 15)
+            # (quiz_id, question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer,
+            # category, author, editor, timestamp_creation, timestamp_lastchange)
+            self.questions = pickle.loads(self.client.recv(2**16))
 
+            self.show_new_quiz_2()
+
+            
+        except Exception as e:
+            self.connected = False
+            self.authenticated = False
+            self.lb_server_status.setText("Mit keinem Server verbunden")
+            self.lb_server_status.setStyleSheet("color: red")
+            
+            self.lb_login_status.setText("Nicht angemeldet")
+            self.lb_login_status.setStyleSheet("color: red")
+            self.client.close()
+            
+            print(e)
+
+    def _next(self, event):
+        if self.current_index < 14:
+            self.current_index += 1
+            current_question = self.questions[self.current_index]
+            random.seed()
+            random_order = list(current_question[2:6])
+            random.shuffle(random_order)
+
+            self.lb_question_number.setText(f"Frage {self.current_index+1}")
+            self.lb_question.setText(current_question[1])
+            self.lb_answer_1.setText(random_order[0])
+            self.lb_answer_2.setText(random_order[1])
+            self.lb_answer_3.setText(random_order[2])
+            self.lb_answer_4.setText(random_order[3])
 
     def _update(self):
         try:
@@ -253,7 +306,8 @@ class Client(QMainWindow):
 
     def init_layouts(self):
         self.home_layout()
-        self.new_quiz_layout()
+        self.new_quiz_layout_1()
+        self.new_quiz_layout_2()
         self.highscore_layout()
         self.new_question_layout()
         self.edit_question_layout()
@@ -278,7 +332,7 @@ class Client(QMainWindow):
         hbox1 = QHBoxLayout()
         btn_start_quiz = QPushButton("Neues Quiz")
         btn_start_quiz.setFont(QFont("Times New Roman", 25, QFont.Cursive))
-        btn_start_quiz.clicked.connect(self.show_new_quiz)
+        btn_start_quiz.clicked.connect(self.show_new_quiz_1)
         hbox1.addWidget(btn_start_quiz)
         hbox1.addStretch()
 
@@ -337,27 +391,146 @@ class Client(QMainWindow):
 
         self.home_widget.setLayout(vbox)
 
-    def new_quiz_layout(self):
-        self.new_quiz_widget = QWidget(self)
+    def new_quiz_layout_1(self):
+        self.new_quiz_widget_1 = QWidget(self)
         
         vbox = QVBoxLayout()
         
-        hbox = QHBoxLayout()
-        btn_start = QPushButton("Start")
-        # btn_start.clicked.connect()
-        btn_cancel = QPushButton("Abbrechen")
-        btn_cancel.clicked.connect(self.show_home)
         
-        hbox.addStretch()
-        hbox.addWidget(btn_start)
-        hbox.addWidget(btn_cancel)
+        hbox0 = QHBoxLayout()
         
-        vbox.addStretch()
-        vbox.addLayout(hbox)
+        lb_new_quiz = QLabel("Neues Quiz")
+        lb_new_quiz.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_new_quiz.setAlignment(Qt.AlignCenter)
         
-        self.new_quiz_widget.setLayout(vbox)
+        hbox0.addWidget(lb_new_quiz)
+        
+        
+        hbox_space0 = QHBoxLayout()
+        hbox_space0.addWidget(QLabel())
+        
+        hbox_space1 = QHBoxLayout()
+        hbox_space1.addWidget(QLabel())
 
-        self.new_quiz_widget.hide()
+        hbox_space2 = QHBoxLayout()
+        hbox_space2.addWidget(QLabel())
+        
+        
+        hbox1 = QHBoxLayout()
+
+        btn_start = QPushButton("Start")
+        btn_start.setFont(QFont("Times New Roman", 30, QFont.Bold))
+        btn_start.clicked.connect(self._start_new_quiz)
+
+        hbox1.addWidget(btn_start, alignment=Qt.AlignCenter)
+
+
+        hbox2 = QHBoxLayout()
+        btn_cancel = QPushButton("Abbrechen")
+        btn_cancel.clicked.connect(self.show_home)        
+        
+        hbox2.addStretch()
+        hbox2.addWidget(btn_cancel)
+        
+        
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space0)
+        vbox.addLayout(hbox_space1)
+        vbox.addLayout(hbox_space2)
+        vbox.addLayout(hbox1)
+        vbox.addStretch()
+        vbox.addLayout(hbox2)
+        
+        self.new_quiz_widget_1.setLayout(vbox)
+
+        self.new_quiz_widget_1.hide()
+    
+    def new_quiz_layout_2(self):
+        self.new_quiz_widget_2 = QWidget(self)
+
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+
+        self.lb_question_number = QLabel()
+        self.lb_question_number.setFont(QFont("Times New Roman", 30, QFont.Bold))
+        self.lb_question_number.setAlignment(Qt.AlignCenter)
+
+        hbox0.addWidget(self.lb_question_number)
+
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+
+        hbox1 = QHBoxLayout()
+
+        self.lb_question = QLabel()
+        self.lb_question.setFont(QFont("Times New Roman", 18, QFont.Bold))
+        self.lb_question.setAlignment(Qt.AlignCenter)
+
+        hbox1.addWidget(self.lb_question)
+
+
+        hbox2 = QHBoxLayout()
+
+        self.lb_answer_1 = QLabel()
+        self.lb_answer_1.setFrameShape(QFrame.Panel)
+        self.lb_answer_1.setFrameShadow(QFrame.Sunken)
+        self.lb_answer_1.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.lb_answer_1.mousePressEvent = self._next
+        
+        self.lb_answer_2 = QLabel()
+        self.lb_answer_2.setFrameShape(QFrame.Panel)
+        self.lb_answer_2.setFrameShadow(QFrame.Sunken)
+        self.lb_answer_2.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+
+        hbox2.addWidget(self.lb_answer_1)
+        hbox2.addWidget(self.lb_answer_2)
+        
+
+        hbox3 = QHBoxLayout()
+
+        self.lb_answer_3 = QLabel()
+        self.lb_answer_3.setFrameShape(QFrame.Panel)
+        self.lb_answer_3.setFrameShadow(QFrame.Sunken)
+        self.lb_answer_3.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        
+        self.lb_answer_4 = QLabel()
+        self.lb_answer_4.setFrameShape(QFrame.Panel)
+        self.lb_answer_4.setFrameShadow(QFrame.Sunken)
+        self.lb_answer_4.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+
+        hbox3.addWidget(self.lb_answer_3)
+        hbox3.addWidget(self.lb_answer_4)
+
+
+        hbox4 = QHBoxLayout()
+
+        self.lb_time = QLabel()
+
+        hbox4.addWidget(self.lb_time)
+
+
+        hbox5 = QHBoxLayout()
+        
+        btn_cancel = QPushButton("Beende")
+        btn_cancel.clicked.connect(self.show_home)
+
+        hbox5.addStretch()
+        hbox5.addWidget(btn_cancel)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox3)
+        vbox.addLayout(hbox4)
+        vbox.addStretch()
+        vbox.addLayout(hbox5)
+        
+
+        self.new_quiz_widget_2.setLayout(vbox)
+        
+        self.new_quiz_widget_2.hide()
 
     def highscore_layout(self):
         self.highscore_widget = QWidget(self)
@@ -609,7 +782,8 @@ class Client(QMainWindow):
     
     def show_home(self):
         self.home_widget.hide()
-        self.new_quiz_widget.hide()
+        self.new_quiz_widget_1.hide()
+        self.new_quiz_widget_2.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
         self.edit_question_widget.hide()
@@ -617,19 +791,47 @@ class Client(QMainWindow):
         
         self.home_widget.show()
 
-    def show_new_quiz(self):
+    def show_new_quiz_1(self):
         self.home_widget.hide()
-        self.new_quiz_widget.hide()
+        self.new_quiz_widget_1.hide()
+        self.new_quiz_widget_2.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
         self.edit_question_widget.hide()
         self.login_widget.hide()
         
-        self.new_quiz_widget.show()
+        self.new_quiz_widget_1.show()
+    
+    def show_new_quiz_2(self):
+        self.home_widget.hide()
+        self.new_quiz_widget_1.hide()
+        self.new_quiz_widget_2.hide()
+        self.highscore_widget.hide()
+        self.new_question_widget.hide()
+        self.edit_question_widget.hide()
+        self.login_widget.hide()
+        
+        self.new_quiz_widget_2.show()
 
+        self.current_index = 0
+        current_question = self.questions[self.current_index]
+
+        random.seed()
+        random_order = list(current_question[2:6])
+        random.shuffle(random_order)
+
+        self.lb_question_number.setText(f"Frage {self.current_index+1}")
+        self.lb_question.setText(current_question[1])
+        self.lb_answer_1.setText(random_order[0])
+        self.lb_answer_2.setText(random_order[1])
+        self.lb_answer_3.setText(random_order[2])
+        self.lb_answer_4.setText(random_order[3])
+
+    
     def show_highscore(self):
         self.home_widget.hide()
-        self.new_quiz_widget.hide()
+        self.new_quiz_widget_1.hide()
+        self.new_quiz_widget_2.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
         self.edit_question_widget.hide()
@@ -640,7 +842,8 @@ class Client(QMainWindow):
     def show_new_question(self):
         if self.admin:
             self.home_widget.hide()
-            self.new_quiz_widget.hide()
+            self.new_quiz_widget_1.hide()
+            self.new_quiz_widget_2.hide()
             self.highscore_widget.hide()
             self.new_question_widget.hide()
             self.edit_question_widget.hide()
@@ -653,7 +856,8 @@ class Client(QMainWindow):
     def show_edit_question(self):
         if self.admin:
             self.home_widget.hide()
-            self.new_quiz_widget.hide()
+            self.new_quiz_widget_1.hide()
+            self.new_quiz_widget_2.hide()
             self.highscore_widget.hide()
             self.new_question_widget.hide()
             self.edit_question_widget.hide()
@@ -665,7 +869,8 @@ class Client(QMainWindow):
 
     def show_login(self):
         self.home_widget.hide()
-        self.new_quiz_widget.hide()
+        self.new_quiz_widget_1.hide()
+        self.new_quiz_widget_2.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
         self.edit_question_widget.hide()
@@ -678,7 +883,8 @@ class Client(QMainWindow):
         self.height = self.frameGeometry().height()
         
         self.home_widget.resize(self.width, self.height-25)
-        self.new_quiz_widget.resize(self.width, self.height-25)
+        self.new_quiz_widget_1.resize(self.width, self.height-25)
+        self.new_quiz_widget_2.resize(self.width, self.height-25)
         self.highscore_widget.resize(self.width, self.height-25)
         self.new_question_widget.resize(self.width, self.height-25)
         self.edit_question_widget.resize(self.width, self.height-25)
