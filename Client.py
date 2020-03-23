@@ -482,6 +482,7 @@ class Client(QMainWindow):
         self.lb_answer_2.setFrameShape(QFrame.Panel)
         self.lb_answer_2.setFrameShadow(QFrame.Sunken)
         self.lb_answer_2.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.lb_answer_2.mousePressEvent = self._next
 
         hbox2.addWidget(self.lb_answer_1)
         hbox2.addWidget(self.lb_answer_2)
@@ -493,11 +494,13 @@ class Client(QMainWindow):
         self.lb_answer_3.setFrameShape(QFrame.Panel)
         self.lb_answer_3.setFrameShadow(QFrame.Sunken)
         self.lb_answer_3.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.lb_answer_3.mousePressEvent = self._next
         
         self.lb_answer_4 = QLabel()
         self.lb_answer_4.setFrameShape(QFrame.Panel)
         self.lb_answer_4.setFrameShadow(QFrame.Sunken)
         self.lb_answer_4.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.lb_answer_4.mousePressEvent = self._next
 
         hbox3.addWidget(self.lb_answer_3)
         hbox3.addWidget(self.lb_answer_4)
