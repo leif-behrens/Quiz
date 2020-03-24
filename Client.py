@@ -288,12 +288,18 @@ class Client(QMainWindow):
             random_order = list(current_question[2:6])
             random.shuffle(random_order)
 
+            correct_answer = current_question[-2]
+            print(dir(event))
+
             self.lb_question_number.setText(f"Frage {self.current_index+1}")
             self.lb_question.setText(current_question[1])
             self.lb_answer_1.setText(random_order[0])
             self.lb_answer_2.setText(random_order[1])
             self.lb_answer_3.setText(random_order[2])
             self.lb_answer_4.setText(random_order[3])
+        
+        if self.current_index == 14:
+            print("Beendet")
 
     def _update(self):
         try:
@@ -472,38 +478,27 @@ class Client(QMainWindow):
 
         hbox2 = QHBoxLayout()
 
-        self.lb_answer_1 = QLabel()
-        self.lb_answer_1.setFrameShape(QFrame.Panel)
-        self.lb_answer_1.setFrameShadow(QFrame.Sunken)
-        self.lb_answer_1.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.btn_answer_1 = QPushButton()
+        self.btn_answer_1.setFont(QFont("Times New Roman", 15, QFont.Cursive))
         self.lb_answer_1.mousePressEvent = self._next
         
-        self.lb_answer_2 = QLabel()
-        self.lb_answer_2.setFrameShape(QFrame.Panel)
-        self.lb_answer_2.setFrameShadow(QFrame.Sunken)
-        self.lb_answer_2.setFont(QFont("Times New Roman", 15, QFont.Cursive))
-        self.lb_answer_2.mousePressEvent = self._next
+        self.btn_answer_2 = QPushButton()
+        self.btn_answer_2.setFont(QFont("Times New Roman", 15, QFont.Cursive))
 
-        hbox2.addWidget(self.lb_answer_1)
-        hbox2.addWidget(self.lb_answer_2)
+        hbox2.addWidget(self.btn_answer_1)
+        hbox2.addWidget(self.btn_answer_2)
         
 
         hbox3 = QHBoxLayout()
 
-        self.lb_answer_3 = QLabel()
-        self.lb_answer_3.setFrameShape(QFrame.Panel)
-        self.lb_answer_3.setFrameShadow(QFrame.Sunken)
-        self.lb_answer_3.setFont(QFont("Times New Roman", 15, QFont.Cursive))
-        self.lb_answer_3.mousePressEvent = self._next
+        self.btn_answer_3 = QPushButton()
+        self.btn_answer_3.setFont(QFont("Times New Roman", 15, QFont.Cursive))
         
-        self.lb_answer_4 = QLabel()
-        self.lb_answer_4.setFrameShape(QFrame.Panel)
-        self.lb_answer_4.setFrameShadow(QFrame.Sunken)
-        self.lb_answer_4.setFont(QFont("Times New Roman", 15, QFont.Cursive))
-        self.lb_answer_4.mousePressEvent = self._next
+        self.btn_answer_4 = QPushButton()
+        self.btn_answer_4.setFont(QFont("Times New Roman", 15, QFont.Cursive))
 
-        hbox3.addWidget(self.lb_answer_3)
-        hbox3.addWidget(self.lb_answer_4)
+        hbox3.addWidget(self.btn_answer_3)
+        hbox3.addWidget(self.btn_answer_4)
 
 
         hbox4 = QHBoxLayout()
