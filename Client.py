@@ -23,8 +23,6 @@ class Client(QMainWindow):
         self.height = self.frameGeometry().height()
         self.init_layouts()
 
-        
-
         self.connected = False
         self.authenticated = False
         self.admin = False
@@ -55,11 +53,16 @@ class Client(QMainWindow):
         else:
             self.settings = {}
 
+        # Initialisiere Quiz-Varibalen
+        self.current_index = 0
+        self.questions = []
+        self.answers = {}
+
+
         self.timer_connect = QTimer()
         self.timer_connect.timeout.connect(self._update)
         self.timer_connect.start(5000)
             
-
     def connect_to_server(self):
         if not self.connected:
             if self.settings:
@@ -256,6 +259,11 @@ class Client(QMainWindow):
     
     def _start_new_quiz(self):
         try:
+            # Initialisiere Quiz-Varibalen
+            self.current_index = 0
+            self.questions = []
+            self.answers = {}
+
             self.client.send(pickle.dumps(1))
             self.client.recv(1024)
             self.client.send(pickle.dumps(self.settings.get('usersettings').get('username')))
@@ -280,7 +288,14 @@ class Client(QMainWindow):
             
             print(e)
 
-    def _next(self, event):
+    def _next(self, answer):
+        if answer == self.questions[self.current_index][5]:
+            self.answers[self.current_index] = True
+            print(True)
+        else:
+            self.answers[self.current_index] = False
+            print(False)
+        
         if self.current_index < 14:
             self.current_index += 1
             current_question = self.questions[self.current_index]
@@ -288,18 +303,16 @@ class Client(QMainWindow):
             random_order = list(current_question[2:6])
             random.shuffle(random_order)
 
-            correct_answer = current_question[-2]
-            print(dir(event))
-
             self.lb_question_number.setText(f"Frage {self.current_index+1}")
-            self.lb_question.setText(current_question[1])
-            self.lb_answer_1.setText(random_order[0])
-            self.lb_answer_2.setText(random_order[1])
-            self.lb_answer_3.setText(random_order[2])
-            self.lb_answer_4.setText(random_order[3])
+            self.te_question.insertPlainText(current_question[1])
+            self.te_answer_1.setText(random_order[0])
+            self.te_answer_2.setText(random_order[1])
+            self.te_answer_3.setText(random_order[2])
+            self.te_answer_4.setText(random_order[3])
         
         if self.current_index == 14:
             print("Beendet")
+            print(self.answers)
 
     def _update(self):
         try:
@@ -400,8 +413,7 @@ class Client(QMainWindow):
     def new_quiz_layout_1(self):
         self.new_quiz_widget_1 = QWidget(self)
         
-        vbox = QVBoxLayout()
-        
+        vbox = QVBoxLayout()        
         
         hbox0 = QHBoxLayout()
         
@@ -469,62 +481,90 @@ class Client(QMainWindow):
 
         hbox1 = QHBoxLayout()
 
-        self.lb_question = QLabel()
-        self.lb_question.setFont(QFont("Times New Roman", 18, QFont.Bold))
-        self.lb_question.setAlignment(Qt.AlignCenter)
+        self.te_question = QTextEdit()
+        self.te_question.setFont(QFont("Times New Roman", 18, QFont.Bold))
+        self.te_question.setReadOnly(True)
 
-        hbox1.addWidget(self.lb_question)
+        hbox1.addWidget(self.te_question)
 
 
         hbox2 = QHBoxLayout()
 
-        self.btn_answer_1 = QPushButton()
-        self.btn_answer_1.setFont(QFont("Times New Roman", 15, QFont.Cursive))
-        self.lb_answer_1.mousePressEvent = self._next
-        
-        self.btn_answer_2 = QPushButton()
-        self.btn_answer_2.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.te_answer_1 = QTextEdit()
+        self.te_answer_1.setDisabled(True)
 
-        hbox2.addWidget(self.btn_answer_1)
-        hbox2.addWidget(self.btn_answer_2)
-        
+        self.te_answer_2 = QTextEdit()
+        self.te_answer_2.setDisabled(True)
+
+        hbox2.addWidget(self.te_answer_1)
+        hbox2.addWidget(self.te_answer_2)
+
 
         hbox3 = QHBoxLayout()
 
-        self.btn_answer_3 = QPushButton()
-        self.btn_answer_3.setFont(QFont("Times New Roman", 15, QFont.Cursive))
-        
-        self.btn_answer_4 = QPushButton()
-        self.btn_answer_4.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.btn_answer_1 = QPushButton("A")
+        self.btn_answer_1.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.btn_answer_1.clicked.connect(lambda: self._next(self.te_answer_1.toPlainText()))
 
-        hbox3.addWidget(self.btn_answer_3)
-        hbox3.addWidget(self.btn_answer_4)
+        self.btn_answer_2 = QPushButton("B")
+        self.btn_answer_2.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.btn_answer_2.clicked.connect(lambda: self._next(self.te_answer_2.toPlainText()))
+        
+        hbox3.addWidget(self.btn_answer_1)
+        hbox3.addWidget(self.btn_answer_2)
 
 
         hbox4 = QHBoxLayout()
 
-        self.lb_time = QLabel()
+        self.te_answer_3 = QTextEdit()
+        self.te_answer_3.setDisabled(True)
+        
+        # self.btn_answer_3.clicked.connect(lambda: self._next(self.btn_answer_4.text()))
+        
+        self.te_answer_4 = QTextEdit()
+        self.te_answer_4.setDisabled(True)
+        
+        # self.btn_answer_4.clicked.connect(lambda: self._next(self.btn_answer_4.text()))
 
-        hbox4.addWidget(self.lb_time)
+        hbox4.addWidget(self.te_answer_3)
+        hbox4.addWidget(self.te_answer_4)
 
 
         hbox5 = QHBoxLayout()
-        
+
+        self.btn_answer_3 = QPushButton("C")
+        self.btn_answer_3.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.btn_answer_3.clicked.connect(lambda: self._next(self.te_answer_3.toPlainText()))
+
+        self.btn_answer_4 = QPushButton("D")
+        self.btn_answer_4.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.btn_answer_4.clicked.connect(lambda: self._next(self.te_answer_4.toPlainText()))
+
+        hbox5.addWidget(self.btn_answer_3)
+        hbox5.addWidget(self.btn_answer_4)
+
+
+        hbox6 = QHBoxLayout()
+
+        self.lb_time = QLabel()
+
         btn_cancel = QPushButton("Beende")
         btn_cancel.clicked.connect(self.show_home)
 
-        hbox5.addStretch()
-        hbox5.addWidget(btn_cancel)
+        hbox6.addWidget(self.lb_time)
+        hbox6.addStretch()
+        hbox6.addWidget(btn_cancel)
 
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox_space)
         vbox.addLayout(hbox1)
         vbox.addLayout(hbox2)
         vbox.addLayout(hbox3)
-        vbox.addLayout(hbox4)
         vbox.addStretch()
+        vbox.addLayout(hbox4)
         vbox.addLayout(hbox5)
-        
+        vbox.addStretch()
+        vbox.addLayout(hbox6)        
 
         self.new_quiz_widget_2.setLayout(vbox)
         
@@ -819,13 +859,12 @@ class Client(QMainWindow):
         random.shuffle(random_order)
 
         self.lb_question_number.setText(f"Frage {self.current_index+1}")
-        self.lb_question.setText(current_question[1])
-        self.lb_answer_1.setText(random_order[0])
-        self.lb_answer_2.setText(random_order[1])
-        self.lb_answer_3.setText(random_order[2])
-        self.lb_answer_4.setText(random_order[3])
+        self.te_question.insertPlainText(current_question[1])
+        self.te_answer_1.setText(random_order[0])
+        self.te_answer_2.setText(random_order[1])
+        self.te_answer_3.setText(random_order[2])
+        self.te_answer_4.setText(random_order[3])
 
-    
     def show_highscore(self):
         self.home_widget.hide()
         self.new_quiz_widget_1.hide()
