@@ -289,12 +289,14 @@ class Client(QMainWindow):
             print(e)
 
     def _next(self, answer):
-        if answer == self.questions[self.current_index][5]:
-            self.answers[self.current_index] = True
-            print(True)
-        else:
-            self.answers[self.current_index] = False
-            print(False)
+        
+        self.answers[self.current_index] = answer
+        # if answer == self.questions[self.current_index][5]:
+        #     self.answers[self.current_index] = True
+        #     print(True)
+        # else:
+        #     self.answers[self.current_index] = False
+        #     print(False)
         
         if self.current_index < 14:
             self.current_index += 1
@@ -313,6 +315,7 @@ class Client(QMainWindow):
         if self.current_index == 14:
             print("Beendet")
             print(self.answers)
+            self.show_results()
 
     def _update(self):
         try:
@@ -327,6 +330,7 @@ class Client(QMainWindow):
         self.home_layout()
         self.new_quiz_layout_1()
         self.new_quiz_layout_2()
+        self.results_layout()
         self.highscore_layout()
         self.new_question_layout()
         self.edit_question_layout()
@@ -569,6 +573,14 @@ class Client(QMainWindow):
         self.new_quiz_widget_2.setLayout(vbox)
         
         self.new_quiz_widget_2.hide()
+
+    def results_layout(self):
+        self.tab_result_main = QTabWidget(self)
+
+        r = ResultWidget("wdf", self.tab_result_main)
+        self.tab_result_main.addTab(r, "Frage 1")
+
+        self.tab_result_main.hide()
 
     def highscore_layout(self):
         self.highscore_widget = QWidget(self)
@@ -822,6 +834,7 @@ class Client(QMainWindow):
         self.home_widget.hide()
         self.new_quiz_widget_1.hide()
         self.new_quiz_widget_2.hide()
+        self.tab_result_main.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
         self.edit_question_widget.hide()
@@ -833,6 +846,7 @@ class Client(QMainWindow):
         self.home_widget.hide()
         self.new_quiz_widget_1.hide()
         self.new_quiz_widget_2.hide()
+        self.tab_result_main.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
         self.edit_question_widget.hide()
@@ -844,6 +858,7 @@ class Client(QMainWindow):
         self.home_widget.hide()
         self.new_quiz_widget_1.hide()
         self.new_quiz_widget_2.hide()
+        self.tab_result_main.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
         self.edit_question_widget.hide()
@@ -865,10 +880,23 @@ class Client(QMainWindow):
         self.te_answer_3.setText(random_order[2])
         self.te_answer_4.setText(random_order[3])
 
+    def show_results(self):
+        self.home_widget.hide()
+        self.new_quiz_widget_1.hide()
+        self.new_quiz_widget_2.hide()
+        self.tab_result_main.hide()
+        self.highscore_widget.hide()
+        self.new_question_widget.hide()
+        self.edit_question_widget.hide()
+        self.login_widget.hide()
+        
+        self.tab_result_main.show()
+
     def show_highscore(self):
         self.home_widget.hide()
         self.new_quiz_widget_1.hide()
         self.new_quiz_widget_2.hide()
+        self.tab_result_main.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
         self.edit_question_widget.hide()
@@ -881,6 +909,7 @@ class Client(QMainWindow):
             self.home_widget.hide()
             self.new_quiz_widget_1.hide()
             self.new_quiz_widget_2.hide()
+            self.tab_result_main.hide()
             self.highscore_widget.hide()
             self.new_question_widget.hide()
             self.edit_question_widget.hide()
@@ -895,6 +924,7 @@ class Client(QMainWindow):
             self.home_widget.hide()
             self.new_quiz_widget_1.hide()
             self.new_quiz_widget_2.hide()
+            self.tab_result_main.hide()
             self.highscore_widget.hide()
             self.new_question_widget.hide()
             self.edit_question_widget.hide()
@@ -908,6 +938,7 @@ class Client(QMainWindow):
         self.home_widget.hide()
         self.new_quiz_widget_1.hide()
         self.new_quiz_widget_2.hide()
+        self.tab_result_main.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
         self.edit_question_widget.hide()
@@ -922,10 +953,62 @@ class Client(QMainWindow):
         self.home_widget.resize(self.width, self.height-25)
         self.new_quiz_widget_1.resize(self.width, self.height-25)
         self.new_quiz_widget_2.resize(self.width, self.height-25)
+        self.tab_result_main.resize(self.width, self.height-25)
         self.highscore_widget.resize(self.width, self.height-25)
         self.new_question_widget.resize(self.width, self.height-25)
         self.edit_question_widget.resize(self.width, self.height-25)
         self.login_widget.resize(self.width, self.height-25)
+
+
+class ResultWidget(QWidget):
+    def __init__(self, question, parent=None):
+        super().__init__()
+        
+        self.question = question
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        
+        hbox0 = QHBoxLayout()
+
+        te_question = QTextEdit()
+        te_question.setReadOnly(True)
+
+        hbox0.addWidget(te_question)
+
+
+        hbox1 = QHBoxLayout()
+
+        te_answer_1 = QTextEdit()
+        te_answer_1.insertPlainText(self.question)
+        te_answer_1.setReadOnly(True)
+        te_answer_2 = QTextEdit()
+        te_answer_2.setReadOnly(True)
+
+        hbox1.addWidget(te_answer_1)
+        hbox1.addWidget(te_answer_2)
+
+
+        hbox2 = QHBoxLayout()
+
+        te_answer_3 = QTextEdit()
+        te_answer_3.setReadOnly(True)
+        te_answer_4 = QTextEdit()
+        te_answer_4.setReadOnly(True)
+
+        hbox2.addWidget(te_answer_3)
+        hbox2.addWidget(te_answer_4)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+
+        self.setLayout(vbox)
+
 
 
 if __name__ == "__main__":
