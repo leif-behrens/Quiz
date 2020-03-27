@@ -55,9 +55,9 @@ class Client(QMainWindow):
 
         # Initialisiere Quiz-Varibalen
         self.current_index = 0
+        self.correct_counter = 0
         self.questions = []
         self.answers = {}
-
 
         self.timer_connect = QTimer()
         self.timer_connect.timeout.connect(self._update)
@@ -261,6 +261,7 @@ class Client(QMainWindow):
         try:
             # Initialisiere Quiz-Varibalen
             self.current_index = 0
+            self.correct_counter = 0
             self.questions = []
             self.answers = {}
 
@@ -272,7 +273,6 @@ class Client(QMainWindow):
             # (quiz_id, question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer,
             # category, author, editor, timestamp_creation, timestamp_lastchange)
             self.questions = pickle.loads(self.client.recv(2**16))
-
             self.show_new_quiz_2()
 
             
@@ -291,15 +291,12 @@ class Client(QMainWindow):
     def _next(self, answer):
         
         self.answers[self.current_index] = answer
-        # if answer == self.questions[self.current_index][5]:
-        #     self.answers[self.current_index] = True
-        #     print(True)
-        # else:
-        #     self.answers[self.current_index] = False
-        #     print(False)
-        
-        if self.current_index < 14:
-            self.current_index += 1
+        if answer == self.questions[self.current_index][5]:
+            self.correct_counter += 1
+
+        self.current_index += 1
+
+        if self.current_index < 15:            
             current_question = self.questions[self.current_index]
             random.seed()
             random_order = list(current_question[2:6])
@@ -312,9 +309,7 @@ class Client(QMainWindow):
             self.te_answer_3.setText(random_order[2])
             self.te_answer_4.setText(random_order[3])
         
-        if self.current_index == 14:
-            print("Beendet")
-            print(self.answers)
+        elif self.current_index == 15:
             self.show_results()
 
     def _update(self):
@@ -577,8 +572,49 @@ class Client(QMainWindow):
     def results_layout(self):
         self.tab_result_main = QTabWidget(self)
 
-        r = ResultWidget("wdf", self.tab_result_main)
-        self.tab_result_main.addTab(r, "Frage 1")
+        self.tab_finished = QWidget()
+
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+
+        lb_finished = QLabel("Quiz beendet")
+        lb_finished.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_finished.setAlignment(Qt.AlignCenter)
+        
+        hbox0.addWidget(lb_finished)
+
+
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+        
+        hbox1 = QHBoxLayout()
+
+        self.lb_result = QLabel()
+        self.lb_result.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox1.addWidget(self.lb_result)
+
+        hbox = QHBoxLayout()
+
+        btn_home = QPushButton("Home")
+        btn_home.clicked.connect(self.show_home)
+
+        hbox.addStretch()
+        hbox.addWidget(btn_home)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox1)
+        vbox.addStretch()
+        vbox.addLayout(hbox)
+
+        self.tab_finished.setLayout(vbox)
+
+        self.tab_result_main.addTab(self.tab_finished, "Beendet")
+
+        # for i in range(15):
+        #     new_tab = ResultWidget(f"Frage {i+1}", self.tab_result_main)
 
         self.tab_result_main.hide()
 
@@ -892,6 +928,17 @@ class Client(QMainWindow):
         
         self.tab_result_main.show()
 
+        self.lb_result.setText(f"Richtige Antworten: {self.correct_counter} von 15")
+        print(self.questions)
+        print(self.answers)
+        # Falls es bereits Tabs gibt, werden sie vorerst gelöscht
+        for i in range(15, 0, -1):
+            self.tab_result_main.removeTab(i)
+        
+        for i in range(15):
+            new_tab = ResultWidget(f"Frage {i+1}", self.tab_result_main)
+            new_tab.fill_layout(self.questions[i], self.answers[i])
+        
     def show_highscore(self):
         self.home_widget.hide()
         self.new_quiz_widget_1.hide()
@@ -961,55 +1008,90 @@ class Client(QMainWindow):
 
 
 class ResultWidget(QWidget):
-    def __init__(self, question, parent=None):
+    def __init__(self, tab_name, parent=None):
+        """
+        Neuer Tab fürs Tabwidget (parent)
+        """
         super().__init__()
         
-        self.question = question
+        self.tab_name = tab_name
         self.parent = parent
 
         self.init_layout()
+        parent.addTab(self, str(tab_name))
 
     def init_layout(self):
         vbox = QVBoxLayout()
 
         
+        hbox = QHBoxLayout()
+
+        lb_question = QLabel(f"{self.tab_name}")
+        lb_question.setFont(QFont("Times New Roman", 24, QFont.Bold))
+        lb_question.setAlignment(Qt.AlignCenter)
+
+        hbox.addWidget(lb_question)        
+
         hbox0 = QHBoxLayout()
 
-        te_question = QTextEdit()
-        te_question.setReadOnly(True)
+        self.te_question = QTextEdit()
+        self.te_question.setReadOnly(True)
 
-        hbox0.addWidget(te_question)
+        hbox0.addWidget(self.te_question)
 
 
         hbox1 = QHBoxLayout()
 
-        te_answer_1 = QTextEdit()
-        te_answer_1.insertPlainText(self.question)
-        te_answer_1.setReadOnly(True)
-        te_answer_2 = QTextEdit()
-        te_answer_2.setReadOnly(True)
+        self.te_answer_1 = QTextEdit()
+        self.te_answer_1.setReadOnly(True)
+        self.te_answer_2 = QTextEdit()
+        self.te_answer_2.setReadOnly(True)
 
-        hbox1.addWidget(te_answer_1)
-        hbox1.addWidget(te_answer_2)
+        hbox1.addWidget(self.te_answer_1)
+        hbox1.addWidget(self.te_answer_2)
 
 
         hbox2 = QHBoxLayout()
 
-        te_answer_3 = QTextEdit()
-        te_answer_3.setReadOnly(True)
-        te_answer_4 = QTextEdit()
-        te_answer_4.setReadOnly(True)
+        self.te_answer_3 = QTextEdit()
+        self.te_answer_3.setReadOnly(True)
+        self.te_answer_4 = QTextEdit()
+        self.te_answer_4.setReadOnly(True)
 
-        hbox2.addWidget(te_answer_3)
-        hbox2.addWidget(te_answer_4)
+        hbox2.addWidget(self.te_answer_3)
+        hbox2.addWidget(self.te_answer_4)
 
+        vbox.addLayout(hbox)
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox1)
         vbox.addLayout(hbox2)
 
         self.setLayout(vbox)
 
+    def fill_layout(self, question, answer):
+        self.te_question.insertPlainText(question[1])
 
+        # Erste Antwort ist die Richtige
+        self.te_answer_1.insertPlainText(question[5])
+        #self.te_answer_1.setStyleSheet("background-color: rgb(153, 255, 153);")
+        if question[5] == answer:
+            self.te_answer_1.setStyleSheet("border: 3px solid green;background-color: rgb(153, 255, 153);")
+        else:
+            self.te_answer_1.setStyleSheet("border: 3px solid green;")
+        
+        self.te_answer_2.insertPlainText(question[2])
+        self.te_answer_3.insertPlainText(question[3])
+        self.te_answer_4.insertPlainText(question[4])
+
+        
+        if question.index(answer) == 2:
+            self.te_answer_2.setStyleSheet("background-color: rgb(255, 153, 153);")
+
+        if question.index(answer) == 3:
+            self.te_answer_3.setStyleSheet("background-color: rgb(255, 153, 153);")
+
+        if question.index(answer) == 4:
+            self.te_answer_4.setStyleSheet("background-color: rgb(255, 153, 153);")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
