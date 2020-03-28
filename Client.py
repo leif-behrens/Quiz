@@ -7,6 +7,7 @@ import os
 import sys
 import time
 import random
+import datetime
 
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -58,6 +59,7 @@ class Client(QMainWindow):
         self.correct_counter = 0
         self.questions = []
         self.answers = {}
+        self.quiz_time_start = 0
 
         self.timer_connect = QTimer()
         self.timer_connect.timeout.connect(self._update)
@@ -223,7 +225,6 @@ class Client(QMainWindow):
                             self.le_wrong_answer_3.clear()
                             self.le_category.clear()
                             self.show_home()
-                        
 
                     else:
                         print("Falsche Eingabe")
@@ -264,6 +265,7 @@ class Client(QMainWindow):
             self.correct_counter = 0
             self.questions = []
             self.answers = {}
+            self.quiz_time_start = time.time()
 
             self.client.send(pickle.dumps(1))
             self.client.recv(1024)
@@ -595,6 +597,14 @@ class Client(QMainWindow):
 
         hbox1.addWidget(self.lb_result)
 
+        
+        hbox2 = QHBoxLayout()
+        
+        self.lb_time = QLabel()
+        self.lb_time.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox2.addWidget(self.lb_time)
+
         hbox = QHBoxLayout()
 
         btn_home = QPushButton("Home")
@@ -606,15 +616,13 @@ class Client(QMainWindow):
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox_space)
         vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
         vbox.addStretch()
         vbox.addLayout(hbox)
 
         self.tab_finished.setLayout(vbox)
 
         self.tab_result_main.addTab(self.tab_finished, "Beendet")
-
-        # for i in range(15):
-        #     new_tab = ResultWidget(f"Frage {i+1}", self.tab_result_main)
 
         self.tab_result_main.hide()
 
@@ -705,7 +713,7 @@ class Client(QMainWindow):
 
         hbox3 = QHBoxLayout()
 
-        lb_category = QLabel("Kategory")
+        lb_category = QLabel("Kategorie")
         lb_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
         self.le_category = QLineEdit()
         self.le_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
@@ -929,6 +937,7 @@ class Client(QMainWindow):
         self.tab_result_main.show()
 
         self.lb_result.setText(f"Richtige Antworten: {self.correct_counter} von 15")
+        self.lb_time.setText(f"Zeit: {round(time.time() - self.quiz_time_start, 2)} Sekunden")
         print(self.questions)
         print(self.answers)
         # Falls es bereits Tabs gibt, werden sie vorerst gelöscht
@@ -1024,52 +1033,90 @@ class ResultWidget(QWidget):
         vbox = QVBoxLayout()
 
         
-        hbox = QHBoxLayout()
-
-        lb_question = QLabel(f"{self.tab_name}")
-        lb_question.setFont(QFont("Times New Roman", 24, QFont.Bold))
-        lb_question.setAlignment(Qt.AlignCenter)
-
-        hbox.addWidget(lb_question)        
-
         hbox0 = QHBoxLayout()
 
-        self.te_question = QTextEdit()
-        self.te_question.setReadOnly(True)
+        lb_question = QLabel(f"{self.tab_name}")
+        lb_question.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+        lb_question.setAlignment(Qt.AlignCenter)
 
-        hbox0.addWidget(self.te_question)
+        hbox0.addWidget(lb_question)
 
-
+        
         hbox1 = QHBoxLayout()
 
-        self.te_answer_1 = QTextEdit()
-        self.te_answer_1.setReadOnly(True)
-        self.te_answer_2 = QTextEdit()
-        self.te_answer_2.setReadOnly(True)
+        self.lb_category = QLabel()
+        self.lb_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
 
-        hbox1.addWidget(self.te_answer_1)
-        hbox1.addWidget(self.te_answer_2)
+        hbox1.addWidget(self.lb_category)
 
 
         hbox2 = QHBoxLayout()
 
+        self.te_question = QTextEdit()
+        self.te_question.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.te_question.setReadOnly(True)
+
+        hbox2.addWidget(self.te_question)
+
+
+        hbox3 = QHBoxLayout()
+
+        self.te_answer_1 = QTextEdit()
+        self.te_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.te_answer_1.setReadOnly(True)
+
+        self.te_answer_2 = QTextEdit()
+        self.te_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.te_answer_2.setReadOnly(True)
+
+        hbox3.addWidget(self.te_answer_1)
+        hbox3.addWidget(self.te_answer_2)
+
+
+        hbox4 = QHBoxLayout()
+
         self.te_answer_3 = QTextEdit()
+        self.te_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
         self.te_answer_3.setReadOnly(True)
+
         self.te_answer_4 = QTextEdit()
+        self.te_answer_4.setFont(QFont("Times New Roman", 12, QFont.Cursive))
         self.te_answer_4.setReadOnly(True)
 
-        hbox2.addWidget(self.te_answer_3)
-        hbox2.addWidget(self.te_answer_4)
+        hbox4.addWidget(self.te_answer_3)
+        hbox4.addWidget(self.te_answer_4)
 
-        vbox.addLayout(hbox)
+
+        hbox5 = QHBoxLayout()
+
+        self.lb_author_plus_date = QLabel()
+        self.lb_author_plus_date.setFont(QFont("Times New Roman", 8, QFont.Cursive))
+
+        hbox5.addWidget(self.lb_author_plus_date)
+
+
+        hbox6 = QHBoxLayout()
+
+        self.lb_last_editor_plus_date = QLabel()
+        self.lb_last_editor_plus_date.setFont(QFont("Times New Roman", 8, QFont.Cursive))
+
+        hbox6.addWidget(self.lb_last_editor_plus_date)
+
+        
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox1)
         vbox.addLayout(hbox2)
+        vbox.addLayout(hbox3)
+        vbox.addLayout(hbox4)
+        vbox.addLayout(hbox5)
+        vbox.addLayout(hbox6)
 
         self.setLayout(vbox)
 
     def fill_layout(self, question, answer):
         self.te_question.insertPlainText(question[1])
+
+        self.lb_category.setText(f"Kategorie: {question[6]}")
 
         # Erste Antwort ist die Richtige
         self.te_answer_1.insertPlainText(question[5])
@@ -1092,6 +1139,10 @@ class ResultWidget(QWidget):
 
         if question.index(answer) == 4:
             self.te_answer_4.setStyleSheet("background-color: rgb(255, 153, 153);")
+
+        self.lb_author_plus_date.setText(f"Frage erstellt am: {str(datetime.datetime.fromtimestamp(question[9]).strftime('%d.%m.%Y %H:%M:%S'))} von {question[7]}")
+        self.lb_last_editor_plus_date.setText(f"Frage zuletzt bearbeitet am: {str(datetime.datetime.fromtimestamp(question[10]).strftime('%d.%m.%Y %H:%M:%S'))} von {question[8]}")
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

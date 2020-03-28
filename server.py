@@ -255,6 +255,16 @@ class PersonDatabase:
         """
 
         self._cur.execute(query)
+
+        query = """
+        CREATE TABLE IF NOT EXISTS score (
+            score_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            correct_answers INTEGER,
+            time FLOAT,
+            username 
+        )
+        """
+
         self._conn.commit()
 
     def new_user(self, username, password_hash, f_name, l_name, email, admin=False):
@@ -296,6 +306,21 @@ class PersonDatabase:
                 return True
             else:
                 return False
+
+
+class ScoreDatabase:
+    def __init__(self, database):
+        self._conn = sqlite3.connect(database)
+        self._cur = self._conn.cursor()
+
+        query = """
+        CREATE TABLE IF NOT EXISTS score (
+            
+        )
+        """
+
+    def new_user_table(self, user):
+        pass
 
 
 if __name__ == "__main__":

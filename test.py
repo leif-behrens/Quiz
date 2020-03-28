@@ -1,23 +1,20 @@
-class Test:
-    def __init__(self, name):
-        self.name = name
-        self.age = 25
-
-    def hello(self):
-        print(self.name)
-        print(self.age)
+from functools import reduce
 
 
-class Test2(Test):
-    def __init__(self, name):
-        super().__init__(name)
-        self.x = "ABC"
+def func(number):
+    if type(number) != int:
+        return False
+
+    else:
+        n = str(number)
+
+        if len(n) == 1:
+            print("1")
+            return n
+        liste = [int(i) for i in n]
+        n = reduce(lambda x, y: x * y, liste)
+        func(n)
 
 
-a = Test("qjhafbdnui")
-b = Test("jwenif")
-c = Test2("wknofg")
-
-[["Vorspeise1", "Hauptgericht1", "Nachspeise1"], ["Vorspeise2", "Hauptgericht2", "Nachspeise2"]]
-
-["primarykey1", ]
+if __name__ == "__main__":
+    print(func(512))
