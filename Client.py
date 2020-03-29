@@ -605,11 +605,32 @@ class Client(QMainWindow):
 
         hbox2.addWidget(self.lb_time)
 
+        
+        hbox3 = QHBoxLayout()
+
+        self.lb_personal_place = QLabel()
+        self.lb_personal_place.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox3.addWidget(self.lb_personal_place)
+
+
+        hbox4 = QHBoxLayout()
+
+        self.lb_global_place = QLabel()
+
+        hbox4.addWidget(self.lb_global_place)
+
+
         hbox = QHBoxLayout()
+        
+        self.lb_database_entry = QLabel()
+        self.lb_database_entry.setFont(QFont("Times New Roman", 8, QFont.Cursive))
+        self.lb_database_entry.setAlignment(Qt.AlignCenter)
 
         btn_home = QPushButton("Home")
         btn_home.clicked.connect(self.show_home)
 
+        hbox.addWidget(self.lb_database_entry)
         hbox.addStretch()
         hbox.addWidget(btn_home)
 
@@ -617,6 +638,9 @@ class Client(QMainWindow):
         vbox.addLayout(hbox_space)
         vbox.addLayout(hbox1)
         vbox.addLayout(hbox2)
+        vbox.addStretch()
+        vbox.addLayout(hbox3)
+        vbox.addLayout(hbox4)
         vbox.addStretch()
         vbox.addLayout(hbox)
 
@@ -887,42 +911,44 @@ class Client(QMainWindow):
         self.home_widget.show()
 
     def show_new_quiz_1(self):
-        self.home_widget.hide()
-        self.new_quiz_widget_1.hide()
-        self.new_quiz_widget_2.hide()
-        self.tab_result_main.hide()
-        self.highscore_widget.hide()
-        self.new_question_widget.hide()
-        self.edit_question_widget.hide()
-        self.login_widget.hide()
-        
-        self.new_quiz_widget_1.show()
+        if self.connected:
+            self.home_widget.hide()
+            self.new_quiz_widget_1.hide()
+            self.new_quiz_widget_2.hide()
+            self.tab_result_main.hide()
+            self.highscore_widget.hide()
+            self.new_question_widget.hide()
+            self.edit_question_widget.hide()
+            self.login_widget.hide()
+            
+            self.new_quiz_widget_1.show()
     
     def show_new_quiz_2(self):
-        self.home_widget.hide()
-        self.new_quiz_widget_1.hide()
-        self.new_quiz_widget_2.hide()
-        self.tab_result_main.hide()
-        self.highscore_widget.hide()
-        self.new_question_widget.hide()
-        self.edit_question_widget.hide()
-        self.login_widget.hide()
-        
-        self.new_quiz_widget_2.show()
+        if self.connected:
+            self.home_widget.hide()
+            self.new_quiz_widget_1.hide()
+            self.new_quiz_widget_2.hide()
+            self.tab_result_main.hide()
+            self.highscore_widget.hide()
+            self.new_question_widget.hide()
+            self.edit_question_widget.hide()
+            self.login_widget.hide()
+            
+            self.new_quiz_widget_2.show()
 
-        self.current_index = 0
-        current_question = self.questions[self.current_index]
+            self.current_index = 0
+            current_question = self.questions[self.current_index]
 
-        random.seed()
-        random_order = list(current_question[2:6])
-        random.shuffle(random_order)
+            random.seed()
+            random_order = list(current_question[2:6])
+            random.shuffle(random_order)
 
-        self.lb_question_number.setText(f"Frage {self.current_index+1}")
-        self.te_question.insertPlainText(current_question[1])
-        self.te_answer_1.setText(random_order[0])
-        self.te_answer_2.setText(random_order[1])
-        self.te_answer_3.setText(random_order[2])
-        self.te_answer_4.setText(random_order[3])
+            self.lb_question_number.setText(f"Frage {self.current_index+1}")
+            self.te_question.insertPlainText(current_question[1])
+            self.te_answer_1.setText(random_order[0])
+            self.te_answer_2.setText(random_order[1])
+            self.te_answer_3.setText(random_order[2])
+            self.te_answer_4.setText(random_order[3])
 
     def show_results(self):
         self.home_widget.hide()
@@ -936,59 +962,95 @@ class Client(QMainWindow):
         
         self.tab_result_main.show()
 
+        end_time = round(time.time() - self.quiz_time_start, 2)
+
         self.lb_result.setText(f"Richtige Antworten: {self.correct_counter} von 15")
-        self.lb_time.setText(f"Zeit: {round(time.time() - self.quiz_time_start, 2)} Sekunden")
-        print(self.questions)
-        print(self.answers)
+        self.lb_time.setText(f"Zeit: {end_time} Sekunden")
+
         # Falls es bereits Tabs gibt, werden sie vorerst gelöscht
         for i in range(15, 0, -1):
             self.tab_result_main.removeTab(i)
         
+        # Tabs für jedes Frage wird erstellt
         for i in range(15):
             new_tab = ResultWidget(f"Frage {i+1}", self.tab_result_main)
             new_tab.fill_layout(self.questions[i], self.answers[i])
         
-    def show_highscore(self):
-        self.home_widget.hide()
-        self.new_quiz_widget_1.hide()
-        self.new_quiz_widget_2.hide()
-        self.tab_result_main.hide()
-        self.highscore_widget.hide()
-        self.new_question_widget.hide()
-        self.edit_question_widget.hide()
-        self.login_widget.hide()
 
-        self.highscore_widget.show()
+        # Daten an Server senden, die dann in die Datenbank geschrieben wird
+        try:
+            data = [self.correct_counter, end_time, self.le_username.text()]
+            self.client.send(pickle.dumps(data))
+
+            reply = pickle.loads(self.client.recv(1024))
+
+            if reply:
+                self.lb_database_entry.setText("Datenbank-Eintrag wurde erstellt.")
+                self.lb_database_entry.setStyleSheet("color: green;")
+            else:
+                self.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden.")
+                self.lb_database_entry.setStyleSheet("color: red;")
+
+        except Exception as e:
+            self.connected = False
+            self.authenticated = False
+            self.lb_server_status.setText("Mit keinem Server verbunden")
+            self.lb_server_status.setStyleSheet("color: red")
+            
+            self.lb_login_status.setText("Nicht angemeldet")
+            self.lb_login_status.setStyleSheet("color: red")
+
+            self.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden, da die Verbindung zum Server unterbrochen ist.")
+            self.lb_database_entry.setStyleSheet("color: red;")
+
+            self.client.close()
+            
+            print(e)
+        
+    def show_highscore(self):
+        if self.connected:
+            self.home_widget.hide()
+            self.new_quiz_widget_1.hide()
+            self.new_quiz_widget_2.hide()
+            self.tab_result_main.hide()
+            self.highscore_widget.hide()
+            self.new_question_widget.hide()
+            self.edit_question_widget.hide()
+            self.login_widget.hide()
+
+            self.highscore_widget.show()
 
     def show_new_question(self):
-        if self.admin:
-            self.home_widget.hide()
-            self.new_quiz_widget_1.hide()
-            self.new_quiz_widget_2.hide()
-            self.tab_result_main.hide()
-            self.highscore_widget.hide()
-            self.new_question_widget.hide()
-            self.edit_question_widget.hide()
-            self.login_widget.hide()
+        if self.connected:
+            if self.admin:
+                self.home_widget.hide()
+                self.new_quiz_widget_1.hide()
+                self.new_quiz_widget_2.hide()
+                self.tab_result_main.hide()
+                self.highscore_widget.hide()
+                self.new_question_widget.hide()
+                self.edit_question_widget.hide()
+                self.login_widget.hide()
 
-            self.new_question_widget.show()
-        else:
-            print("Fehlende Rechte")
+                self.new_question_widget.show()
+            else:
+                print("Fehlende Rechte")
 
     def show_edit_question(self):
-        if self.admin:
-            self.home_widget.hide()
-            self.new_quiz_widget_1.hide()
-            self.new_quiz_widget_2.hide()
-            self.tab_result_main.hide()
-            self.highscore_widget.hide()
-            self.new_question_widget.hide()
-            self.edit_question_widget.hide()
-            self.login_widget.hide()
+        if self.connected:
+            if self.admin:
+                self.home_widget.hide()
+                self.new_quiz_widget_1.hide()
+                self.new_quiz_widget_2.hide()
+                self.tab_result_main.hide()
+                self.highscore_widget.hide()
+                self.new_question_widget.hide()
+                self.edit_question_widget.hide()
+                self.login_widget.hide()
 
-            self.edit_question_widget.show()
-        else:
-            print("Fehlende Rechte")
+                self.edit_question_widget.show()
+            else:
+                print("Fehlende Rechte")
 
     def show_login(self):
         self.home_widget.hide()

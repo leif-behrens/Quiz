@@ -86,12 +86,28 @@ class Server:
                     client.send("Neues Quiz".encode())
                     username = pickle.loads(client.recv(1024))
 
+                    # Quizdaten werden aus der Datenbank gelesen
                     quiz = QuizDatabase("Database/quiz.db", username)
                     quiz._cur.execute("SELECT * FROM quiz ORDER BY RANDOM() LIMIT 15")
                     data = quiz._cur.fetchall()
                     quiz._conn.close()
 
+                    # Quizdaten werden an den Client gesendet
                     client.send(pickle.dumps(data))
+
+                    # Ergebnisse des Quizes werden empfangen
+                    data = pickle.loads(client.recv(2**12))
+
+                    # Hier werden die empfangenen Daten in die Datenbank geschrieben
+                    person = PersonDatabase("Database/user.db")
+                    
+                    # Überprüfung, ob der Datensatz geschrieben werden konnte
+                    insert = person.new_score(data[0], data[1], data[2])
+                    
+                    # Der Bool der Überprüfung wird an den Client gesendet
+                    client.send(pickle.dumps(insert[0]))
+
+                    person._conn.close()
 
                 elif data == 2:
                     # Highscoreliste
@@ -260,11 +276,14 @@ class PersonDatabase:
         CREATE TABLE IF NOT EXISTS score (
             score_id INTEGER PRIMARY KEY AUTOINCREMENT,
             correct_answers INTEGER,
-            time FLOAT,
-            username 
+            time_sec REAL,
+            username TEXT,
+            timestamp_creation INTEGER,
+            FOREIGN KEY(username) REFERENCES user(username)
         )
         """
 
+        self._cur.execute(query)
         self._conn.commit()
 
     def new_user(self, username, password_hash, f_name, l_name, email, admin=False):
@@ -277,6 +296,7 @@ class PersonDatabase:
                 ?, ?, ?, ?, ?, ?
             )
             """
+
             try:
                 self._cur.execute(query, (username, password_hash, f_name, l_name, admin))
                 self._conn.commit()
@@ -307,6 +327,76 @@ class PersonDatabase:
             else:
                 return False
 
+    def new_score(self, correct_answers, time_sec, username):
+        query = """
+        INSERT INTO score (correct_answers, time_sec, username, timestamp_creation) VALUES (
+            ?, ?, ?, ?
+        )
+        """
+
+        try:
+            self._cur.execute(query, (correct_answers, time_sec, username, int(time.time())))
+            self._conn.commit()
+            return True, ""
+        
+        except Exception as e:
+            return False, e
+
+    def check_score_by_username(self, username: str, score: int, time_needed: float):
+        """
+        :param username: String -> Username
+        :param score: Integer -> Erzielter Score
+        :param time_needed: Float -> Erzielte Zeit
+        :return: Integer -> Platz der eigenen Scores. 0 wird returnt, wenn es keine Übereinstimmung gibt
+        """
+
+        query = """
+        SELECT correct_answers, time_sec FROM score 
+            WHERE username = ?
+            ORDER BY correct_answers DESC, time_sec ASC
+        """
+
+        self._cur.execute(query, (username,))
+        data = self._cur.fetchall()
+
+        index = 0
+
+        for d in data:
+            if d[0] == score and d[1] == time_needed:
+                return index + 1
+            index += 1
+        
+        return 0
+    
+    def check_score_by_global(self, score: int, time_needed: float):
+        """
+        :param score: Integer -> Erzielter Score
+        :param time_needed: FLoat -> Erzielte Zeit
+        :return: Integer -> Globaler Platz im Ranking
+        """
+
+        query = """
+        SELECT correct_answers, time_sec FROM score
+            ORDER BY correct_answers DESC, time_sec ASC
+        """
+
+        self._cur.execute(query)
+        data = self._cur.fetchall()
+
+        index = 0
+        
+        for d in data:
+            if d[0] == score and d[1] == time_needed:
+                return index + 1
+            index += 1
+        
+        return 0
+
+
+
+    def __del__(self):
+        self._conn.close()
+
 
 class ScoreDatabase:
     def __init__(self, database):
@@ -326,6 +416,10 @@ class ScoreDatabase:
 if __name__ == "__main__":
     s = Server()
     s.run()
+    # d = PersonDatabase("Database/user.db")
+    # print(d.check_score_by_global(3, 4.44))
+    # print(d.check_score_by_username("lbehrens2", 3, 6.68))
+
     # d = QuizDatabase("Database/quiz.db", "lbehrens2")
     # print(d.new_question("Aadfsdfsdf", "sdfew", "q", "xvbftg", "rgeergerge", "23234"))
-    
+    # p = PersonDatabase("Database/user.db")
