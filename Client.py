@@ -617,6 +617,7 @@ class Client(QMainWindow):
         hbox4 = QHBoxLayout()
 
         self.lb_global_place = QLabel()
+        self.lb_global_place.setFont(QFont("Times New Roman", 24, QFont.Cursive))
 
         hbox4.addWidget(self.lb_global_place)
 
@@ -912,43 +913,45 @@ class Client(QMainWindow):
 
     def show_new_quiz_1(self):
         if self.connected:
-            self.home_widget.hide()
-            self.new_quiz_widget_1.hide()
-            self.new_quiz_widget_2.hide()
-            self.tab_result_main.hide()
-            self.highscore_widget.hide()
-            self.new_question_widget.hide()
-            self.edit_question_widget.hide()
-            self.login_widget.hide()
-            
-            self.new_quiz_widget_1.show()
+            if self.authenticated:
+                self.home_widget.hide()
+                self.new_quiz_widget_1.hide()
+                self.new_quiz_widget_2.hide()
+                self.tab_result_main.hide()
+                self.highscore_widget.hide()
+                self.new_question_widget.hide()
+                self.edit_question_widget.hide()
+                self.login_widget.hide()
+                
+                self.new_quiz_widget_1.show()
     
     def show_new_quiz_2(self):
         if self.connected:
-            self.home_widget.hide()
-            self.new_quiz_widget_1.hide()
-            self.new_quiz_widget_2.hide()
-            self.tab_result_main.hide()
-            self.highscore_widget.hide()
-            self.new_question_widget.hide()
-            self.edit_question_widget.hide()
-            self.login_widget.hide()
-            
-            self.new_quiz_widget_2.show()
+            if self.authenticated:
+                self.home_widget.hide()
+                self.new_quiz_widget_1.hide()
+                self.new_quiz_widget_2.hide()
+                self.tab_result_main.hide()
+                self.highscore_widget.hide()
+                self.new_question_widget.hide()
+                self.edit_question_widget.hide()
+                self.login_widget.hide()
+                
+                self.new_quiz_widget_2.show()
 
-            self.current_index = 0
-            current_question = self.questions[self.current_index]
+                self.current_index = 0
+                current_question = self.questions[self.current_index]
 
-            random.seed()
-            random_order = list(current_question[2:6])
-            random.shuffle(random_order)
+                random.seed()
+                random_order = list(current_question[2:6])
+                random.shuffle(random_order)
 
-            self.lb_question_number.setText(f"Frage {self.current_index+1}")
-            self.te_question.insertPlainText(current_question[1])
-            self.te_answer_1.setText(random_order[0])
-            self.te_answer_2.setText(random_order[1])
-            self.te_answer_3.setText(random_order[2])
-            self.te_answer_4.setText(random_order[3])
+                self.lb_question_number.setText(f"Frage {self.current_index+1}")
+                self.te_question.insertPlainText(current_question[1])
+                self.te_answer_1.setText(random_order[0])
+                self.te_answer_2.setText(random_order[1])
+                self.te_answer_3.setText(random_order[2])
+                self.te_answer_4.setText(random_order[3])
 
     def show_results(self):
         self.home_widget.hide()
@@ -984,12 +987,23 @@ class Client(QMainWindow):
 
             reply = pickle.loads(self.client.recv(1024))
 
-            if reply:
+            if reply[0]:
                 self.lb_database_entry.setText("Datenbank-Eintrag wurde erstellt.")
                 self.lb_database_entry.setStyleSheet("color: green;")
             else:
                 self.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden.")
                 self.lb_database_entry.setStyleSheet("color: red;")
+            
+
+            if reply[1] == 0:
+                self.lb_personal_place.setText(f"Persönlicher Platz: Konnte nicht ermittelt werden")
+            else:
+                self.lb_personal_place.setText(f"Persönlicher Platz: {str(reply[1])}")
+
+            if reply[2] == 0:
+                self.lb_global_place.setText(f"Globaler Platz: Konnte nicht ermittelt werden")
+            else:
+                self.lb_global_place.setText(f"Globaler Platz: {str(reply[2])}")
 
         except Exception as e:
             self.connected = False
@@ -1006,7 +1020,7 @@ class Client(QMainWindow):
             self.client.close()
             
             print(e)
-        
+
     def show_highscore(self):
         if self.connected:
             self.home_widget.hide()

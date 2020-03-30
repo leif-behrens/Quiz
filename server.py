@@ -103,11 +103,20 @@ class Server:
                     
                     # Überprüfung, ob der Datensatz geschrieben werden konnte
                     insert = person.new_score(data[0], data[1], data[2])
-                    
-                    # Der Bool der Überprüfung wird an den Client gesendet
-                    client.send(pickle.dumps(insert[0]))
 
                     person._conn.close()
+
+                    # DB wurde zunächst geschlossen um sicherzustellen, dass der letzte Eintrag schon
+                    # geschrieben wurde                    
+                    person = PersonDatabase("Database/user.db")
+
+                    place_personal = person.check_score_by_username(data[2], data[0], data[1])
+                    place_global = person.check_score_by_global(data[0], data[1])
+                    
+                    person._conn.close()
+                    
+                    # Der Bool der Überprüfung wird an den Client gesendet
+                    client.send(pickle.dumps((insert[0], place_personal, place_global)))                   
 
                 elif data == 2:
                     # Highscoreliste
@@ -391,7 +400,6 @@ class PersonDatabase:
             index += 1
         
         return 0
-
 
 
     def __del__(self):
