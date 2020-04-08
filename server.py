@@ -120,7 +120,16 @@ class Server:
 
                 elif data == 2:
                     # Highscoreliste
-                    pass
+                    person = PersonDatabase("Database/user.db")
+                    query = """
+                    SELECT correct_answers, time_sec, username, timestamp_creation
+                    FROM score ORDER BY correct_answers DESC, time_sec ASC LIMIT 25
+                    """
+                    
+                    person._cur.execute(query)
+
+                    client.send(pickle.dumps(person._cur.fetchall()))
+
 
                 elif data == 3:
                     # Neue Frage erstellen
@@ -400,7 +409,6 @@ class PersonDatabase:
             index += 1
         
         return 0
-
 
     def __del__(self):
         self._conn.close()

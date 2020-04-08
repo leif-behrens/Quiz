@@ -323,6 +323,41 @@ class Client(QMainWindow):
         except Exception as e:
             print(e)
 
+    def fill_highscore(self):
+        self.highscore.tw_highscore.clear()
+        self.highscore.tw_highscore.setColumnCount(4)
+        self.highscore.tw_highscore.setRowCount(25)
+
+        self.highscore.tw_highscore.setHorizontalHeaderLabels(["Score", "Zeit", "Username", "Datum"])
+
+        header = self.highscore.tw_highscore.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
+
+        try:
+            self.client.send(pickle.dumps(2))
+            data = pickle.loads(self.client.recv(2**16))
+
+            for n, element in enumerate(data):
+                self.highscore.tw_highscore.setItem(n, 0, QTableWidgetItem(str(element[0])))
+                self.highscore.tw_highscore.setItem(n, 1, QTableWidgetItem(str(element[1])))
+                self.highscore.tw_highscore.setItem(n, 2, QTableWidgetItem(str(element[2])))
+                self.highscore.tw_highscore.setItem(n, 3, QTableWidgetItem(str(datetime.datetime.fromtimestamp(element[3]).strftime('%d.%m.%Y %H:%M:%S'))))            
+
+        except Exception as e:
+            self.connected = False
+            self.authenticated = False
+            self.lb_server_status.setText("Mit keinem Server verbunden")
+            self.lb_server_status.setStyleSheet("color: red")
+            
+            self.lb_login_status.setText("Nicht angemeldet")
+            self.lb_login_status.setStyleSheet("color: red")
+            self.client.close()
+            
+            print(e)
+
     def init_layouts(self):
         self.home_layout()
         self.new_quiz_layout_1()
@@ -653,24 +688,11 @@ class Client(QMainWindow):
 
     def highscore_layout(self):
         self.highscore_widget = QWidget(self)
-        
-        vbox = QVBoxLayout()
-        
-        hbox = QHBoxLayout()
-        btn_save = QPushButton("Speichern")
-        # btn_save.clicked.connect()
-        btn_cancel = QPushButton("Abbrechen")
-        btn_cancel.clicked.connect(self.show_home)
-        
-        hbox.addStretch()
-        hbox.addWidget(btn_save)
-        hbox.addWidget(btn_cancel)
-        
-        vbox.addStretch()
-        vbox.addLayout(hbox)
-        
-        self.highscore_widget.setLayout(vbox)
-        
+
+        self.highscore = HighscoreWidget(self.highscore_widget, self.show_home)
+
+        self.highscore.btn_refresh.clicked.connect(self.fill_highscore)
+
         self.highscore_widget.hide()
 
     def new_question_layout(self):
@@ -1033,6 +1055,8 @@ class Client(QMainWindow):
             self.login_widget.hide()
 
             self.highscore_widget.show()
+            
+            self.fill_highscore()
 
     def show_new_question(self):
         if self.connected:
@@ -1107,7 +1131,6 @@ class ResultWidget(QWidget):
 
     def init_layout(self):
         vbox = QVBoxLayout()
-
         
         hbox0 = QHBoxLayout()
 
@@ -1218,6 +1241,73 @@ class ResultWidget(QWidget):
 
         self.lb_author_plus_date.setText(f"Frage erstellt am: {str(datetime.datetime.fromtimestamp(question[9]).strftime('%d.%m.%Y %H:%M:%S'))} von {question[7]}")
         self.lb_last_editor_plus_date.setText(f"Frage zuletzt bearbeitet am: {str(datetime.datetime.fromtimestamp(question[10]).strftime('%d.%m.%Y %H:%M:%S'))} von {question[8]}")
+
+
+class HighscoreWidget(QWidget):
+    def __init__(self, parent=None, home_func=None):
+        super().__init__()
+        
+        self.parent = parent
+        self.home_func = home_func
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+
+        lb_highscore = QLabel("Highscore")
+        lb_highscore.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_highscore.setAlignment(Qt.AlignCenter)
+        
+        hbox0.addWidget(lb_highscore)
+
+
+        hbox_space = QHBoxLayout()
+
+        hbox_space.addWidget(QLabel())
+
+
+        hbox1 = QHBoxLayout()
+
+        self.tw_highscore = QTableWidget()
+        self.tw_highscore.setColumnCount(4)
+        self.tw_highscore.setRowCount(25)
+
+        self.tw_highscore.setHorizontalHeaderItem(0, QTableWidgetItem("Score"))
+        self.tw_highscore.setHorizontalHeaderItem(1, QTableWidgetItem("Zeit"))
+        self.tw_highscore.setHorizontalHeaderItem(2, QTableWidgetItem("Username"))
+        self.tw_highscore.setHorizontalHeaderItem(3, QTableWidgetItem("Datum"))
+        self.tw_highscore.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+        header = self.tw_highscore.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
+
+        hbox1.addWidget(self.tw_highscore)
+
+        
+        hbox = QHBoxLayout()
+        self.btn_refresh = QPushButton("Neu laden")
+        
+        btn_home = QPushButton("Home")
+        btn_home.clicked.connect(self.home_func)
+
+        hbox.addWidget(self.btn_refresh)
+        hbox.addStretch()
+        hbox.addWidget(btn_home)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox_space)
+        # vbox.addStretch()
+        vbox.addLayout(hbox)
+
+
+        self.parent.setLayout(vbox)
 
 
 if __name__ == "__main__":
