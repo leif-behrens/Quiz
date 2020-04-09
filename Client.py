@@ -18,7 +18,7 @@ class Client(QMainWindow):
     def __init__(self):
         super().__init__()
         
-        self.setMinimumSize(600, 400)
+        self.setMinimumSize(750, 500)
         self.setWindowTitle("Quiz")
         self.width = self.frameGeometry().width()
         self.height = self.frameGeometry().height()
@@ -61,9 +61,6 @@ class Client(QMainWindow):
         self.answers = {}
         self.quiz_time_start = 0
 
-        self.timer_connect = QTimer()
-        self.timer_connect.timeout.connect(self._update)
-        self.timer_connect.start(5000)
             
     def connect_to_server(self):
         if not self.connected:
@@ -314,15 +311,6 @@ class Client(QMainWindow):
         elif self.current_index == 15:
             self.show_results()
 
-    def _update(self):
-        try:
-            if self.settings:
-                for k, v in self.settings.items():
-                    pass
-
-        except Exception as e:
-            print(e)
-
     def fill_highscore(self):
         self.highscore.tw_highscore.clear()
         self.highscore.tw_highscore.setColumnCount(4)
@@ -365,7 +353,8 @@ class Client(QMainWindow):
         self.results_layout()
         self.highscore_layout()
         self.new_question_layout()
-        self.edit_question_layout()
+        self.edit_question_layout_1()
+        self.edit_question_layout_2()
         self.login_layout()
 
         self.show()
@@ -408,7 +397,7 @@ class Client(QMainWindow):
         hbox4 = QHBoxLayout()
         btn_edit_delete_question = QPushButton("Frage bearbeiten/löschen")
         btn_edit_delete_question.setFont(QFont("Times New Roman", 25, QFont.Cursive))
-        btn_edit_delete_question.clicked.connect(self.show_edit_question)
+        btn_edit_delete_question.clicked.connect(self.show_edit_question_1)
         hbox4.addWidget(btn_edit_delete_question)
         hbox4.addStretch()
 
@@ -795,27 +784,151 @@ class Client(QMainWindow):
         self.new_question_widget.setLayout(vbox)
         self.new_question_widget.hide()
     
-    def edit_question_layout(self):
-        self.edit_question_widget = QWidget(self)
+    def edit_question_layout_1(self):
+        self.edit_question_widget_1 = QWidget(self)
+
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+        lb_edit_delete_question = QLabel("Frage bearbeiten/löschen")
+        lb_edit_delete_question.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_edit_delete_question.setAlignment(Qt.AlignCenter)
+
+        hbox0.addWidget(lb_edit_delete_question)
+
+
+        hbox1 = QHBoxLayout()
+
+        self.tw_edit_question = QTableWidget()
+        self.tw_edit_question.setColumnCount(7)
+        self.tw_edit_question.verticalHeader().hide()
+        self.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategory", "Author", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
         
-        vbox = QVBoxLayout()        
-        
+        header = self.tw_edit_question.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
+        header.setSectionResizeMode(4, QHeaderView.Stretch)
+        header.setSectionResizeMode(5, QHeaderView.Stretch)
+        header.setSectionResizeMode(6, QHeaderView.Stretch)
+
+        hbox1.addWidget(self.tw_edit_question)
+
+
         hbox = QHBoxLayout()
+        btn_home = QPushButton("Home")
+        btn_home.clicked.connect(self.show_home)
+        hbox.addStretch()
+        hbox.addWidget(btn_home)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox)
+
+        self.edit_question_widget_1.setLayout(vbox)
+
+        self.edit_question_widget_1.hide()
+
+    def edit_question_layout_2(self):
+        self.edit_question_widget_2 = QWidget(self)
+                
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+        lb_question = QLabel("Frage")
+        lb_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+
+        le_question = QLineEdit()
+        le_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))        
+        le_question.setStyleSheet("border: 1px solid black")
+
+        hbox0.addWidget(lb_question)
+        hbox0.addWidget(le_question)
+
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+
+
+        hbox1 = QHBoxLayout()
+        lb_correct_answer = QLabel("Richtige Antwort  ")
+        lb_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        le_correct_answer = QLineEdit()
+        le_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))        
+        le_correct_answer.setStyleSheet("border: 1px solid black")
+
+        lb_wrong_answer_1 = QLabel("Falsche Antwort 1")
+        lb_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        le_wrong_answer_1 = QLineEdit()
+        le_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        le_wrong_answer_1.setStyleSheet("border: 1px solid black")
+        
+        
+        hbox1.addWidget(lb_correct_answer)
+        hbox1.addWidget(le_correct_answer)
+        hbox1.addStretch()
+        hbox1.addWidget(lb_wrong_answer_1)
+        hbox1.addWidget(le_wrong_answer_1)
+
+
+        hbox2 = QHBoxLayout()
+        
+        lb_wrong_answer_2 = QLabel("Falsche Antwort 2")
+        lb_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        le_wrong_answer_2 = QLineEdit()
+        le_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        le_wrong_answer_2.setStyleSheet("border: 1px solid black")
+
+        lb_wrong_answer_3 = QLabel("Falsche Antwort 3")
+        lb_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        le_wrong_answer_3 = QLineEdit()
+        le_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        le_wrong_answer_3.setStyleSheet("border: 1px solid black")
+
+        hbox2.addWidget(lb_wrong_answer_2)
+        hbox2.addWidget(le_wrong_answer_2)  
+        hbox2.addStretch()      
+        hbox2.addWidget(lb_wrong_answer_3)
+        hbox2.addWidget(le_wrong_answer_3)
+
+
+        hbox3 = QHBoxLayout()
+
+        lb_category = QLabel("Kategorie")
+        lb_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        le_category = QLineEdit()
+        le_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        le_category.setStyleSheet("border: 1px solid black")
+
+        hbox3.addWidget(lb_category)
+        hbox3.addWidget(le_category)
+
+
+        hbox4 = QHBoxLayout()
+
         btn_save = QPushButton("Speichern")
+        btn_save.setFont(QFont("Times New Roman", 12, QFont.Cursive))
         # btn_save.clicked.connect()
+
         btn_cancel = QPushButton("Abbrechen")
         btn_cancel.clicked.connect(self.show_home)
-        
-        hbox.addStretch()
-        hbox.addWidget(btn_save)
-        hbox.addWidget(btn_cancel)
-        
+        btn_cancel.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+    	
+        hbox4.addStretch()
+        hbox4.addWidget(btn_save)
+        hbox4.addWidget(btn_cancel)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox3)
         vbox.addStretch()
-        vbox.addLayout(hbox)
+        vbox.addLayout(hbox4)
         
-        self.edit_question_widget.setLayout(vbox)
-        
-        self.edit_question_widget.hide()
+        self.edit_question_widget_2.setLayout(vbox)
+
+        self.edit_question_widget_2.hide()
 
     def login_layout(self):
         self.login_widget = QWidget(self)
@@ -928,7 +1041,8 @@ class Client(QMainWindow):
         self.tab_result_main.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
-        self.edit_question_widget.hide()
+        self.edit_question_widget_1.hide()
+        self.edit_question_widget_2.hide()
         self.login_widget.hide()
         
         self.home_widget.show()
@@ -942,7 +1056,8 @@ class Client(QMainWindow):
                 self.tab_result_main.hide()
                 self.highscore_widget.hide()
                 self.new_question_widget.hide()
-                self.edit_question_widget.hide()
+                self.edit_question_widget_1.hide()
+                self.edit_question_widget_2.hide()
                 self.login_widget.hide()
                 
                 self.new_quiz_widget_1.show()
@@ -956,7 +1071,8 @@ class Client(QMainWindow):
                 self.tab_result_main.hide()
                 self.highscore_widget.hide()
                 self.new_question_widget.hide()
-                self.edit_question_widget.hide()
+                self.edit_question_widget_1.hide()
+                self.edit_question_widget2.hide()
                 self.login_widget.hide()
                 
                 self.new_quiz_widget_2.show()
@@ -982,7 +1098,8 @@ class Client(QMainWindow):
         self.tab_result_main.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
-        self.edit_question_widget.hide()
+        self.edit_question_widget_1.hide()
+        self.edit_question_widget_2.hide()
         self.login_widget.hide()
         
         self.tab_result_main.show()
@@ -1051,7 +1168,8 @@ class Client(QMainWindow):
             self.tab_result_main.hide()
             self.highscore_widget.hide()
             self.new_question_widget.hide()
-            self.edit_question_widget.hide()
+            self.edit_question_widget_1.hide()
+            self.edit_question_widget_2.hide()
             self.login_widget.hide()
 
             self.highscore_widget.show()
@@ -1067,14 +1185,15 @@ class Client(QMainWindow):
                 self.tab_result_main.hide()
                 self.highscore_widget.hide()
                 self.new_question_widget.hide()
-                self.edit_question_widget.hide()
+                self.edit_question_widget_1.hide()
+                self.edit_question_widget_2.hide()
                 self.login_widget.hide()
 
                 self.new_question_widget.show()
             else:
                 print("Fehlende Rechte")
 
-    def show_edit_question(self):
+    def show_edit_question_1(self):
         if self.connected:
             if self.admin:
                 self.home_widget.hide()
@@ -1083,10 +1202,45 @@ class Client(QMainWindow):
                 self.tab_result_main.hide()
                 self.highscore_widget.hide()
                 self.new_question_widget.hide()
-                self.edit_question_widget.hide()
+                self.edit_question_widget_1.hide()
+                self.edit_question_widget_2.hide()
                 self.login_widget.hide()
 
-                self.edit_question_widget.show()
+                self.edit_question_widget_1.show()
+
+                self.tw_edit_question.clear()
+                self.tw_edit_question.setColumnCount(7)
+                self.tw_edit_question.setRowCount(0)
+
+                self.tw_edit_question.verticalHeader().hide()
+                self.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategory", "Author", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
+
+                header = self.tw_edit_question.horizontalHeader()
+                header.setSectionResizeMode(0, QHeaderView.Stretch)
+                header.setSectionResizeMode(1, QHeaderView.Stretch)
+                header.setSectionResizeMode(2, QHeaderView.Stretch) 
+
+                try:
+                    self.client.send(pickle.dumps(4))
+                    all_questions = pickle.loads(self.client.recv(2**16))
+
+            else:
+                print("Fehlende Rechte")
+    
+    def show_edit_question_2(self):
+        if self.connected:
+            if self.admin:
+                self.home_widget.hide()
+                self.new_quiz_widget_1.hide()
+                self.new_quiz_widget_2.hide()
+                self.tab_result_main.hide()
+                self.highscore_widget.hide()
+                self.new_question_widget.hide()
+                self.edit_question_widget_1.hide()
+                self.edit_question_widget_2.hide()
+                self.login_widget.hide()
+
+                self.edit_question_widget_2.show()
             else:
                 print("Fehlende Rechte")
 
@@ -1097,7 +1251,8 @@ class Client(QMainWindow):
         self.tab_result_main.hide()
         self.highscore_widget.hide()
         self.new_question_widget.hide()
-        self.edit_question_widget.hide()
+        self.edit_question_widget_1.hide()
+        self.edit_question_widget_2.hide()
         self.login_widget.hide()
         
         self.login_widget.show()
@@ -1112,7 +1267,8 @@ class Client(QMainWindow):
         self.tab_result_main.resize(self.width, self.height-25)
         self.highscore_widget.resize(self.width, self.height-25)
         self.new_question_widget.resize(self.width, self.height-25)
-        self.edit_question_widget.resize(self.width, self.height-25)
+        self.edit_question_widget_1.resize(self.width, self.height-25)
+        self.edit_question_widget_2.resize(self.width, self.height-25)
         self.login_widget.resize(self.width, self.height-25)
 
 

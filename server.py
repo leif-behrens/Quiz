@@ -46,15 +46,10 @@ class Server:
             self.ip = config.get("ip")
             self.port = config.get("port")
             
-            try:
-                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.sock.bind((self.ip, self.port))
-                self.sock.listen(5)
+            self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.sock.bind((self.ip, self.port))
+            self.sock.listen(5)
 
-            except Exception as e:
-                self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.sock.bind(("localhost", 50000))
-                self.sock.listen(5)
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.bind(("localhost", 50000))
@@ -412,21 +407,6 @@ class PersonDatabase:
 
     def __del__(self):
         self._conn.close()
-
-
-class ScoreDatabase:
-    def __init__(self, database):
-        self._conn = sqlite3.connect(database)
-        self._cur = self._conn.cursor()
-
-        query = """
-        CREATE TABLE IF NOT EXISTS score (
-            
-        )
-        """
-
-    def new_user_table(self, user):
-        pass
 
 
 if __name__ == "__main__":
