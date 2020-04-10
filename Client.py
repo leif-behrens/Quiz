@@ -41,7 +41,7 @@ class Client(QMainWindow):
         self.auth_tries = 0        
 
         if os.path.exists("Config/clientsettings.json"):
-            with open("Config/clientsettings.json", "r+") as f:
+            with open("Config/clientsettings.json") as f:
                 try:
                     self.settings = json.load(f)
                     
