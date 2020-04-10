@@ -122,14 +122,14 @@ class Client(QMainWindow):
                     else:
                         try:
                             self.client.send(pickle.dumps(5))
-                            self.client.recv(1024)
+                            self.client.recv(2**16)
 
                             credentials = [self.settings.get("usersettings").get("username"), self.settings.get("usersettings").get("password")]
                             pickled = pickle.dumps(credentials)
 
                             try:
                                 self.client.send(pickled)
-                                response = pickle.loads(self.client.recv(1024))
+                                response = pickle.loads(self.client.recv(2**16))
                                 self.authenticated = response[0]
                                 self.admin = response[1]
                                 
@@ -193,7 +193,7 @@ class Client(QMainWindow):
                     if check_entry:
                         try:
                             self.client.send(pickle.dumps(3))
-                            self.client.recv(1024)
+                            self.client.recv(2**16)
 
                             data = (self.le_question.text(), self.le_wrong_answer_1.text(),
                                     self.le_wrong_answer_2.text(), self.le_wrong_answer_3.text(),
@@ -278,7 +278,7 @@ class Client(QMainWindow):
                     if check_entry:
                         try:
                             self.client.send(pickle.dumps(7))
-                            self.client.recv(1024)
+                            self.client.recv(2**16)
 
                             data = (self.le_edit_question.text(), 
                                     self.le_edit_wrong_answer_1.text(),
@@ -360,7 +360,7 @@ class Client(QMainWindow):
             self.quiz_time_start = time.time()
 
             self.client.send(pickle.dumps(1))
-            self.client.recv(1024)
+            self.client.recv(2**16)
             self.client.send(pickle.dumps(self.settings.get('usersettings').get('username')))
 
             # Erhalte eine Liste mit Tuples für jede Frage (insgesamt 15)
@@ -1235,7 +1235,7 @@ class Client(QMainWindow):
             data = [self.correct_counter, end_time, self.le_username.text()]
             self.client.send(pickle.dumps(data))
 
-            reply = pickle.loads(self.client.recv(1024))
+            reply = pickle.loads(self.client.recv(2**16))
 
             if reply[0]:
                 self.lb_database_entry.setText("Datenbank-Eintrag wurde erstellt.")
@@ -1337,7 +1337,7 @@ class Client(QMainWindow):
 
                 try:
                     self.client.send(pickle.dumps(4))
-                    self.client.recv(1024)  # Pseudo
+                    self.client.recv(2**16)  # Pseudo
                     self.client.send(pickle.dumps(self.le_username.text()))
                     
                     all_questions = pickle.loads(self.client.recv(2**30))
@@ -1391,7 +1391,7 @@ class Client(QMainWindow):
                 self.edit_question_widget_2.show()
                 
                 self.client.send(pickle.dumps(6))
-                self.client.recv(1024) # Pseudo
+                self.client.recv(2**16) # Pseudo
                 self.client.send(pickle.dumps((self.tw_edit_question.item(self.tw_edit_question.currentRow(), 0).text(), self.le_username.text())))
                 
                 question = pickle.loads(self.client.recv(2**16))
