@@ -43,9 +43,8 @@ class Server:
             with open("Config/serversettings.json") as f:
                 config = json.load(f)
             
-            self.ip = config.get("ip")
-            self.port = config.get("port")
-            
+            self.ip = config.get("serversettings").get("ip")
+            self.port = config.get("serversettings").get("port")
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.bind((self.ip, self.port))
             self.sock.listen(5)
@@ -139,8 +138,18 @@ class Server:
                     quiz._conn.close()
 
                 elif data == 4:
-                    # Frage bearbeiten/löschen
-                    pass
+                    # Alle Fragen erhalten
+                    client.send("Edit".encode())
+                    user = pickle.loads(client.recv(1024))   # Username empfangen
+
+                    quiz = QuizDatabase("Database/quiz.db", user)
+                    query = """
+                    SELECT quiz_id, question, category, author, editor, timestamp_creation, timestamp_lastchange
+                    FROM quiz ORDER BY quiz_id ASC
+                    """
+                    quiz._cur.execute(query)
+
+                    client.send(pickle.dumps(quiz._cur.fetchall())) # Sende alle Fragen an Client
                 
                 elif data == 5:
                     # Login
@@ -149,6 +158,41 @@ class Server:
                     
                     access = self.check_credentials(*data)
                     client.send(pickle.dumps(access))
+
+                elif data == 6:
+                    # Eine Frage erhalten
+                    client.send("Edit".encode())
+                    data = pickle.loads(client.recv(1024))    # Erhalte Primary Key der zu bearbeitenden Frage sowie den Username
+
+                    quiz = QuizDatabase("Database/quiz.db", data[1])
+
+                    query = """
+                    SELECT question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer, category
+                    FROM quiz 
+                    WHERE quiz_id = ?
+                    """
+
+                    quiz._cur.execute(query, (data[0],))
+
+                    question = quiz._cur.fetchone()
+
+                    client.send(pickle.dumps(question))
+                
+                elif data == 7:
+                    # Speichere editierte Frage
+                    client.send("Edit".encode())
+
+                    # Bearbeitete Frage und username
+                    # [question, wrong_answer_1, 2, 3, correct_answer, category, username, primarykey]
+                    updated = pickle.loads(client.recv(2**16)) 
+
+                    quiz = QuizDatabase("Database/quiz.db", updated[-2])
+
+                    executed = quiz.change_question(*updated)
+                    
+                    client.send(pickle.dumps(executed))
+
+
 
             except Exception as e:
                 client.close()
@@ -229,21 +273,28 @@ class QuizDatabase:
         except Exception as e:
             return False, e
     
-    def change_question(self, primarykey, column, new_value):
-        if self.permission:
-            query = f"""
-            UPDATE quiz 
-            SET {column} = ?, editor = ?, timestamp_lastchange = ?
-            WHERE quiz_id = ?
-            """
+    def change_question(self, *args):
+        query = f"""
+        UPDATE quiz 
+        SET 
+            timestamp_lastchange = ?,
+            question = ?,
+            wrong_answer_1 = ?,
+            wrong_answer_2 = ?,
+            wrong_answer_3 = ?,
+            correct_answer = ?,
+            category = ?,
+            editor = ?                
+        WHERE quiz_id = ?
+        """
 
-            try:
-                self._cur.execute(query, (new_value, self.username, int(time.time()), primarykey))
-                self._conn.commit()
-                return True, ""
+        try:
+            self._cur.execute(query, (int(time.time()), *args))
+            self._conn.commit()
+            return True, ""
 
-            except Exception as e:
-                return False, e
+        except Exception as e:
+            return False, e
 
     def delete_question(self, primarykey):
         if self.permission:
