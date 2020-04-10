@@ -12,7 +12,10 @@ import random
 import sys
 
 from database import *
+from functions import *
 
+
+HEADER = 64
 
 class Server:
     def __init__(self):
@@ -195,9 +198,6 @@ class Server:
             return access, False
         
         person._conn.close()
-
-
-
 
 
 

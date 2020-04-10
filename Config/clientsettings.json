@@ -1,6 +1,6 @@
 {
     "serversettings": {
-        "ip": "212.48.117.115",
+        "ip": "localhost",
         "port": 50000
     },
     "usersettings": {
