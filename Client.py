@@ -8,6 +8,7 @@ import sys
 import time
 import random
 import datetime
+from pathlib import Path
 
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -22,6 +23,11 @@ class Client(QMainWindow):
         self.setWindowTitle("Quiz")
         self.width = self.frameGeometry().width()
         self.height = self.frameGeometry().height()
+
+        Path("./Database").mkdir(parents=True, exist_ok=True)
+        Path("./Config").mkdir(parents=True, exist_ok=True)
+        
+
         self.init_layouts()
 
         self.connected = False
@@ -226,6 +232,95 @@ class Client(QMainWindow):
                     else:
                         print("Falsche Eingabe")
 
+    def save_edit_question(self):
+        if self.connected:
+            if self.authenticated:
+                if self.admin:
+                    # Check der Eingabedaten
+                    check_entry = True
+
+                    if not self.le_edit_question.text().split():
+                        self.le_edit_question.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_edit_question.setStyleSheet("border: 1px solid black")
+                    
+                    if not self.le_edit_correct_answer.text().split():
+                        self.le_edit_correct_answer.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_edit_correct_answer.setStyleSheet("border: 1px solid black")
+                    
+                    if not self.le_edit_wrong_answer_1.text().split():
+                        self.le_edit_wrong_answer_1.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_edit_wrong_answer_1.setStyleSheet("border: 1px solid black")
+
+                    if not self.le_edit_wrong_answer_2.text().split():
+                        self.le_edit_wrong_answer_2.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_edit_wrong_answer_2.setStyleSheet("border: 1px solid black")
+
+                    if not self.le_edit_wrong_answer_3.text().split():
+                        self.le_edit_wrong_answer_3.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_edit_wrong_answer_3.setStyleSheet("border: 1px solid black")
+
+                    if not self.le_edit_category.text().split():
+                        self.le_edit_category.setStyleSheet("border: 1px solid red")
+                        check_entry = False
+                    else:
+                        self.le_edit_category.setStyleSheet("border: 1px solid black")
+                    
+                    if check_entry:
+                        try:
+                            self.client.send(pickle.dumps(7))
+                            self.client.recv(1024)
+
+                            data = (self.le_edit_question.text(), 
+                                    self.le_edit_wrong_answer_1.text(),
+                                    self.le_edit_wrong_answer_2.text(),
+                                    self.le_edit_wrong_answer_3.text(),
+                                    self.le_edit_correct_answer.text(),
+                                    self.le_edit_category.text(),
+                                    self.le_username.text(),
+                                    self.tw_edit_question.item(self.tw_edit_question.currentRow(), 0).text())
+                            
+                            self.client.send(pickle.dumps(data))
+
+                            response = pickle.loads(self.client.recv(4096))
+                            
+                            if response[0]:
+                                print("Frage erfolgreich gespeichert")
+                            else:
+                                print(f"Fehler ist aufgetreten: {response[1]}")
+                        
+                        except Exception as e:
+                            self.connected = False
+                            self.authenticated = False
+                            self.lb_server_status.setText("Mit keinem Server verbunden")
+                            self.lb_server_status.setStyleSheet("color: red")
+                            
+                            self.lb_login_status.setText("Nicht angemeldet")
+                            self.lb_login_status.setStyleSheet("color: red")
+                            self.client.close()
+                            print(e)
+                        
+                        finally:                                
+                            self.le_question.clear()
+                            self.le_correct_answer.clear()
+                            self.le_wrong_answer_1.clear()
+                            self.le_wrong_answer_2.clear()
+                            self.le_wrong_answer_3.clear()
+                            self.le_category.clear()
+                            self.show_home()
+
+                    else:
+                        print("Falsche Eingabe")
+
     def save_execute_config(self):
         if os.path.exists("Config/clientsettings.json"):
             try:
@@ -288,6 +383,7 @@ class Client(QMainWindow):
             print(e)
 
     def _next(self, answer):
+        self.te_question.clear()
         
         self.answers[self.current_index] = answer
         if answer == self.questions[self.current_index][5]:
@@ -295,7 +391,7 @@ class Client(QMainWindow):
 
         self.current_index += 1
 
-        if self.current_index < 15:            
+        if self.current_index < 15:
             current_question = self.questions[self.current_index]
             random.seed()
             random_order = list(current_question[2:6])
@@ -571,14 +667,11 @@ class Client(QMainWindow):
 
         hbox6 = QHBoxLayout()
 
-        self.lb_time = QLabel()
+        # btn_cancel = QPushButton("Beende")
+        # btn_cancel.clicked.connect(self.show_home)
 
-        btn_cancel = QPushButton("Beende")
-        btn_cancel.clicked.connect(self.show_home)
-
-        hbox6.addWidget(self.lb_time)
-        hbox6.addStretch()
-        hbox6.addWidget(btn_cancel)
+        # hbox6.addStretch()
+        # hbox6.addWidget(btn_cancel)
 
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox_space)
@@ -686,10 +779,17 @@ class Client(QMainWindow):
 
     def new_question_layout(self):
         self.new_question_widget = QWidget(self)
-        self.new_question_widget.resize(self.width, self.height-25)
+        # self.new_question_widget.resize(self.width, self.height-25)
         
         vbox = QVBoxLayout()
 
+        hbox = QHBoxLayout()
+        
+        lb_question_ = QLabel("Neue Frage erstellen")
+        lb_question_.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_question_.setAlignment(Qt.AlignCenter)
+
+        hbox.addWidget(lb_question_)
 
         hbox0 = QHBoxLayout()
         lb_question = QLabel("Frage")
@@ -773,6 +873,7 @@ class Client(QMainWindow):
         hbox4.addWidget(btn_save)
         hbox4.addWidget(btn_cancel)
 
+        vbox.addLayout(hbox)
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox_space)
         vbox.addLayout(hbox1)
@@ -803,6 +904,7 @@ class Client(QMainWindow):
         self.tw_edit_question.setColumnCount(7)
         self.tw_edit_question.verticalHeader().hide()
         self.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategory", "Author", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
+        self.tw_edit_question.itemDoubleClicked.connect(self.show_edit_question_2)
         
         header = self.tw_edit_question.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.Stretch)
@@ -835,16 +937,25 @@ class Client(QMainWindow):
                 
         vbox = QVBoxLayout()
 
+        hbox = QHBoxLayout()
+
+        lb_question_ = QLabel("Frage bearbeiten/löschen")
+        lb_question_.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_question_.setAlignment(Qt.AlignCenter)
+
+        hbox.addWidget(lb_question_)
+
+
         hbox0 = QHBoxLayout()
         lb_question = QLabel("Frage")
         lb_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))
 
-        le_question = QLineEdit()
-        le_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))        
-        le_question.setStyleSheet("border: 1px solid black")
+        self.le_edit_question = QLineEdit()
+        self.le_edit_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))        
+        self.le_edit_question.setStyleSheet("border: 1px solid black")
 
         hbox0.addWidget(lb_question)
-        hbox0.addWidget(le_question)
+        hbox0.addWidget(self.le_edit_question)
 
         hbox_space = QHBoxLayout()
         hbox_space.addWidget(QLabel())
@@ -853,62 +964,62 @@ class Client(QMainWindow):
         hbox1 = QHBoxLayout()
         lb_correct_answer = QLabel("Richtige Antwort  ")
         lb_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        le_correct_answer = QLineEdit()
-        le_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))        
-        le_correct_answer.setStyleSheet("border: 1px solid black")
+        self.le_edit_correct_answer = QLineEdit()
+        self.le_edit_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))        
+        self.le_edit_correct_answer.setStyleSheet("border: 1px solid black")
 
         lb_wrong_answer_1 = QLabel("Falsche Antwort 1")
         lb_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        le_wrong_answer_1 = QLineEdit()
-        le_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        le_wrong_answer_1.setStyleSheet("border: 1px solid black")
+        self.le_edit_wrong_answer_1 = QLineEdit()
+        self.le_edit_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_wrong_answer_1.setStyleSheet("border: 1px solid black")
         
         
         hbox1.addWidget(lb_correct_answer)
-        hbox1.addWidget(le_correct_answer)
+        hbox1.addWidget(self.le_edit_correct_answer)
         hbox1.addStretch()
         hbox1.addWidget(lb_wrong_answer_1)
-        hbox1.addWidget(le_wrong_answer_1)
+        hbox1.addWidget(self.le_edit_wrong_answer_1)
 
 
         hbox2 = QHBoxLayout()
         
         lb_wrong_answer_2 = QLabel("Falsche Antwort 2")
         lb_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        le_wrong_answer_2 = QLineEdit()
-        le_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        le_wrong_answer_2.setStyleSheet("border: 1px solid black")
+        self.le_edit_wrong_answer_2 = QLineEdit()
+        self.le_edit_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_wrong_answer_2.setStyleSheet("border: 1px solid black")
 
         lb_wrong_answer_3 = QLabel("Falsche Antwort 3")
         lb_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        le_wrong_answer_3 = QLineEdit()
-        le_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        le_wrong_answer_3.setStyleSheet("border: 1px solid black")
+        self.le_edit_wrong_answer_3 = QLineEdit()
+        self.le_edit_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_wrong_answer_3.setStyleSheet("border: 1px solid black")
 
         hbox2.addWidget(lb_wrong_answer_2)
-        hbox2.addWidget(le_wrong_answer_2)  
+        hbox2.addWidget(self.le_edit_wrong_answer_2)  
         hbox2.addStretch()      
         hbox2.addWidget(lb_wrong_answer_3)
-        hbox2.addWidget(le_wrong_answer_3)
+        hbox2.addWidget(self.le_edit_wrong_answer_3)
 
 
         hbox3 = QHBoxLayout()
 
         lb_category = QLabel("Kategorie")
         lb_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        le_category = QLineEdit()
-        le_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        le_category.setStyleSheet("border: 1px solid black")
+        self.le_edit_category = QLineEdit()
+        self.le_edit_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_category.setStyleSheet("border: 1px solid black")
 
         hbox3.addWidget(lb_category)
-        hbox3.addWidget(le_category)
+        hbox3.addWidget(self.le_edit_category)
 
 
         hbox4 = QHBoxLayout()
 
         btn_save = QPushButton("Speichern")
         btn_save.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        # btn_save.clicked.connect()
+        btn_save.clicked.connect(self.save_edit_question)
 
         btn_cancel = QPushButton("Abbrechen")
         btn_cancel.clicked.connect(self.show_home)
@@ -918,6 +1029,7 @@ class Client(QMainWindow):
         hbox4.addWidget(btn_save)
         hbox4.addWidget(btn_cancel)
 
+        vbox.addLayout(hbox)
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox_space)
         vbox.addLayout(hbox1)
@@ -1072,9 +1184,8 @@ class Client(QMainWindow):
                 self.highscore_widget.hide()
                 self.new_question_widget.hide()
                 self.edit_question_widget_1.hide()
-                self.edit_question_widget2.hide()
+                self.edit_question_widget_2.hide()
                 self.login_widget.hide()
-                
                 self.new_quiz_widget_2.show()
 
                 self.current_index = 0
@@ -1213,16 +1324,53 @@ class Client(QMainWindow):
                 self.tw_edit_question.setRowCount(0)
 
                 self.tw_edit_question.verticalHeader().hide()
-                self.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategory", "Author", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
+                self.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategorie", "Autor", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
 
                 header = self.tw_edit_question.horizontalHeader()
-                header.setSectionResizeMode(0, QHeaderView.Stretch)
-                header.setSectionResizeMode(1, QHeaderView.Stretch)
-                header.setSectionResizeMode(2, QHeaderView.Stretch) 
+                header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+                header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+                header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+                header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+                header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+                header.setSectionResizeMode(5, QHeaderView.Stretch)
+                header.setSectionResizeMode(6, QHeaderView.Stretch)
 
                 try:
                     self.client.send(pickle.dumps(4))
-                    all_questions = pickle.loads(self.client.recv(2**16))
+                    self.client.recv(1024)  # Pseudo
+                    self.client.send(pickle.dumps(self.le_username.text()))
+                    
+                    all_questions = pickle.loads(self.client.recv(2**30))
+
+                    for d in all_questions:
+                        row_pos = self.tw_edit_question.rowCount()
+                        self.tw_edit_question.insertRow(row_pos)
+                        self.tw_edit_question.setSelectionBehavior(QAbstractItemView.SelectRows)
+                        self.tw_edit_question.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+                        self.tw_edit_question.setItem(row_pos, 0, QTableWidgetItem(str(d[0])))
+                        self.tw_edit_question.setItem(row_pos, 1, QTableWidgetItem(str(d[1])))
+                        self.tw_edit_question.setItem(row_pos, 2, QTableWidgetItem(str(d[2])))
+                        self.tw_edit_question.setItem(row_pos, 3, QTableWidgetItem(str(d[3])))
+                        self.tw_edit_question.setItem(row_pos, 4, QTableWidgetItem(str(d[4])))
+                        self.tw_edit_question.setItem(row_pos, 5, QTableWidgetItem(str(datetime.datetime.fromtimestamp(d[5]).strftime('%d.%m.%Y %H:%M:%S'))))
+                        self.tw_edit_question.setItem(row_pos, 6, QTableWidgetItem(str(datetime.datetime.fromtimestamp(d[6]).strftime('%d.%m.%Y %H:%M:%S'))))
+                                                
+                except Exception as e:
+                    self.connected = False
+                    self.authenticated = False
+                    self.lb_server_status.setText("Mit keinem Server verbunden")
+                    self.lb_server_status.setStyleSheet("color: red")
+                    
+                    self.lb_login_status.setText("Nicht angemeldet")
+                    self.lb_login_status.setStyleSheet("color: red")
+
+                    self.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden, da die Verbindung zum Server unterbrochen ist.")
+                    self.lb_database_entry.setStyleSheet("color: red;")
+
+                    self.client.close()
+                    
+                    print(e)
 
             else:
                 print("Fehlende Rechte")
@@ -1241,6 +1389,20 @@ class Client(QMainWindow):
                 self.login_widget.hide()
 
                 self.edit_question_widget_2.show()
+                
+                self.client.send(pickle.dumps(6))
+                self.client.recv(1024) # Pseudo
+                self.client.send(pickle.dumps((self.tw_edit_question.item(self.tw_edit_question.currentRow(), 0).text(), self.le_username.text())))
+                
+                question = pickle.loads(self.client.recv(2**16))
+
+                self.le_edit_question.setText(str(question[0]))
+                self.le_edit_wrong_answer_1.setText(str(question[1]))
+                self.le_edit_wrong_answer_2.setText(str(question[2]))
+                self.le_edit_wrong_answer_3.setText(str(question[3]))
+                self.le_edit_correct_answer.setText(str(question[4]))
+                self.le_edit_category.setText(str(question[5])) 
+            
             else:
                 print("Fehlende Rechte")
 
