@@ -34,6 +34,20 @@ class PersonDatabase:
         """
 
         self._cur.execute(query)
+
+        query = """
+        INSERT INTO user (username, password, admin) VALUES (
+            'admin', 
+            '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 
+            'True'
+            )
+        """
+        # Sicherstellen, dass es ein Adminkonto gibt (default Passwort admin)
+        try:
+            self._cur.execute(query)
+        except sqlite3.IntegrityError:
+            pass
+
         self._conn.commit()
 
     def new_user(self, username, password_hash, f_name, l_name, email, admin=False):
@@ -241,3 +255,8 @@ class QuizDatabase:
 
     def __del__(self):
         self._conn.close()
+
+
+if __name__ == "__main__":
+    person = PersonDatabase("Database/user.db")
+

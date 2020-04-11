@@ -65,6 +65,7 @@ class Server:
                     quiz = QuizDatabase("Database/quiz.db", username)
                     quiz._cur.execute("SELECT * FROM quiz ORDER BY RANDOM() LIMIT 15")
                     data = quiz._cur.fetchall()
+                    
                     quiz._conn.close()
 
                     # Quizdaten werden an den Client gesendet

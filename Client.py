@@ -369,7 +369,13 @@ class Client(QMainWindow):
             # (quiz_id, question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer,
             # category, author, editor, timestamp_creation, timestamp_lastchange)
             self.questions = pickle.loads(self.client.recv(2**16))
-            self.show_new_quiz_2()
+
+            if len(self.questions) != 15:
+                print("Nicht genügend Fragen vorhanden.")
+                self.show_home()
+                
+            else:
+                self.show_new_quiz_2()
 
             
         except Exception as e:
@@ -669,8 +675,8 @@ class Client(QMainWindow):
             self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
             self.home_widget_main.lb_login_status.setStyleSheet("color: red")
 
-            self.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden, da die Verbindung zum Server unterbrochen ist.")
-            self.lb_database_entry.setStyleSheet("color: red;")
+            self.finished_widget_main.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden, da die Verbindung zum Server unterbrochen ist.")
+            self.finished_widget_main.lb_database_entry.setStyleSheet("color: red;")
 
             self.client.close()
             
@@ -770,8 +776,8 @@ class Client(QMainWindow):
                     self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
                     self.home_widget_main.lb_login_status.setStyleSheet("color: red")
 
-                    self.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden, da die Verbindung zum Server unterbrochen ist.")
-                    self.lb_database_entry.setStyleSheet("color: red;")
+                    self.finished_widget_main.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden, da die Verbindung zum Server unterbrochen ist.")
+                    self.finished_widget_main.lb_database_entry.setStyleSheet("color: red;")
 
                     self.client.close()
                     
