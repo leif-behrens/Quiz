@@ -616,7 +616,7 @@ class NewQuestionWidget(QWidget):
         self.parent.setLayout(vbox)
 
 
-class EditQuestionLayout(QWidget):
+class EditQuestionWidget1(QWidget):
     def __init__(self, parent=None):
         super().__init__()
 
@@ -663,4 +663,117 @@ class EditQuestionLayout(QWidget):
         vbox.addLayout(hbox1)
         vbox.addLayout(hbox)
 
+        self.parent.setLayout(vbox)
+
+
+class EditQuestionWidget2(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+    
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox = QHBoxLayout()
+
+        lb_question_ = QLabel("Frage bearbeiten/löschen")
+        lb_question_.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_question_.setAlignment(Qt.AlignCenter)
+
+        hbox.addWidget(lb_question_)
+
+
+        hbox0 = QHBoxLayout()
+        lb_question = QLabel("Frage")
+        lb_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+
+        self.le_edit_question = QLineEdit()
+        self.le_edit_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))        
+        self.le_edit_question.setStyleSheet("border: 1px solid black")
+
+        hbox0.addWidget(lb_question)
+        hbox0.addWidget(self.le_edit_question)
+
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+
+
+        hbox1 = QHBoxLayout()
+        lb_correct_answer = QLabel("Richtige Antwort  ")
+        lb_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_correct_answer = QLineEdit()
+        self.le_edit_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))        
+        self.le_edit_correct_answer.setStyleSheet("border: 1px solid black")
+
+        lb_wrong_answer_1 = QLabel("Falsche Antwort 1")
+        lb_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_wrong_answer_1 = QLineEdit()
+        self.le_edit_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_wrong_answer_1.setStyleSheet("border: 1px solid black")
+        
+        
+        hbox1.addWidget(lb_correct_answer)
+        hbox1.addWidget(self.le_edit_correct_answer)
+        hbox1.addStretch()
+        hbox1.addWidget(lb_wrong_answer_1)
+        hbox1.addWidget(self.le_edit_wrong_answer_1)
+
+
+        hbox2 = QHBoxLayout()
+        
+        lb_wrong_answer_2 = QLabel("Falsche Antwort 2")
+        lb_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_wrong_answer_2 = QLineEdit()
+        self.le_edit_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_wrong_answer_2.setStyleSheet("border: 1px solid black")
+
+        lb_wrong_answer_3 = QLabel("Falsche Antwort 3")
+        lb_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_wrong_answer_3 = QLineEdit()
+        self.le_edit_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_wrong_answer_3.setStyleSheet("border: 1px solid black")
+
+        hbox2.addWidget(lb_wrong_answer_2)
+        hbox2.addWidget(self.le_edit_wrong_answer_2)  
+        hbox2.addStretch()      
+        hbox2.addWidget(lb_wrong_answer_3)
+        hbox2.addWidget(self.le_edit_wrong_answer_3)
+
+
+        hbox3 = QHBoxLayout()
+
+        lb_category = QLabel("Kategorie")
+        lb_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_category = QLineEdit()
+        self.le_edit_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_edit_category.setStyleSheet("border: 1px solid black")
+
+        hbox3.addWidget(lb_category)
+        hbox3.addWidget(self.le_edit_category)
+
+
+        hbox4 = QHBoxLayout()
+
+        self.btn_save = QPushButton("Speichern")
+        self.btn_save.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+
+        self.btn_cancel = QPushButton("Abbrechen")
+        self.btn_cancel.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+    	
+        hbox4.addStretch()
+        hbox4.addWidget(self.btn_save)
+        hbox4.addWidget(self.btn_cancel)
+
+        vbox.addLayout(hbox)
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox3)
+        vbox.addStretch()
+        vbox.addLayout(hbox4)
+        
         self.parent.setLayout(vbox)
