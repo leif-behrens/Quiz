@@ -82,6 +82,157 @@ class HomeWidget(QWidget):
 
         self.parent.setLayout(vbox)
 
+
+class NewQuizWidget1(QWidget):
+    def __init__(self, parent):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()        
+        
+        hbox0 = QHBoxLayout()
+        
+        lb_new_quiz = QLabel("Neues Quiz")
+        lb_new_quiz.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_new_quiz.setAlignment(Qt.AlignCenter)
+        
+        hbox0.addWidget(lb_new_quiz)
+        
+        
+        hbox_space0 = QHBoxLayout()
+        hbox_space0.addWidget(QLabel())
+        
+        hbox_space1 = QHBoxLayout()
+        hbox_space1.addWidget(QLabel())
+
+        hbox_space2 = QHBoxLayout()
+        hbox_space2.addWidget(QLabel())
+        
+        
+        hbox1 = QHBoxLayout()
+
+        self.btn_start = QPushButton("Start")
+        self.btn_start.setFont(QFont("Times New Roman", 30, QFont.Bold))
+
+        hbox1.addWidget(self.btn_start, alignment=Qt.AlignCenter)
+
+
+        hbox2 = QHBoxLayout()
+        self.btn_cancel = QPushButton("Abbrechen")  
+        
+        hbox2.addStretch()
+        hbox2.addWidget(self.btn_cancel)
+        
+        
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space0)
+        vbox.addLayout(hbox_space1)
+        vbox.addLayout(hbox_space2)
+        vbox.addLayout(hbox1)
+        vbox.addStretch()
+        vbox.addLayout(hbox2)
+        
+        self.parent.setLayout(vbox)
+
+
+class NewQuizWidget2(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+
+        self.lb_question_number = QLabel()
+        self.lb_question_number.setFont(QFont("Times New Roman", 30, QFont.Bold))
+        self.lb_question_number.setAlignment(Qt.AlignCenter)
+
+        hbox0.addWidget(self.lb_question_number)
+
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+
+        hbox1 = QHBoxLayout()
+
+        self.te_question = QTextEdit()
+        self.te_question.setFont(QFont("Times New Roman", 18, QFont.Bold))
+        self.te_question.setReadOnly(True)
+
+        hbox1.addWidget(self.te_question)
+
+
+        hbox2 = QHBoxLayout()
+
+        self.te_answer_1 = QTextEdit()
+        self.te_answer_1.setDisabled(True)
+
+        self.te_answer_2 = QTextEdit()
+        self.te_answer_2.setDisabled(True)
+
+        hbox2.addWidget(self.te_answer_1)
+        hbox2.addWidget(self.te_answer_2)
+
+
+        hbox3 = QHBoxLayout()
+
+        self.btn_answer_1 = QPushButton("A")
+        self.btn_answer_1.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+
+        self.btn_answer_2 = QPushButton("B")
+        self.btn_answer_2.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        
+        hbox3.addWidget(self.btn_answer_1)
+        hbox3.addWidget(self.btn_answer_2)
+
+
+        hbox4 = QHBoxLayout()
+
+        self.te_answer_3 = QTextEdit()
+        self.te_answer_3.setDisabled(True)
+        
+        
+        self.te_answer_4 = QTextEdit()
+        self.te_answer_4.setDisabled(True)
+        
+
+        hbox4.addWidget(self.te_answer_3)
+        hbox4.addWidget(self.te_answer_4)
+
+
+        hbox5 = QHBoxLayout()
+
+        self.btn_answer_3 = QPushButton("C")
+        self.btn_answer_3.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        
+        self.btn_answer_4 = QPushButton("D")
+        self.btn_answer_4.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        
+        hbox5.addWidget(self.btn_answer_3)
+        hbox5.addWidget(self.btn_answer_4)
+
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox3)
+        vbox.addStretch()
+        vbox.addLayout(hbox4)
+        vbox.addLayout(hbox5)
+        vbox.addStretch()
+
+        self.parent.setLayout(vbox)
+
+
 class FinishedTab(QWidget):
     def __init__(self, parent=None):
         super().__init__()
