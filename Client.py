@@ -45,12 +45,12 @@ class Client(QMainWindow):
                 try:
                     self.settings = json.load(f)
                     
-                    self.le_ip.setText(str(self.settings.get("serversettings").get("ip")))
-                    self.le_port.setText(str(self.settings.get("serversettings").get("port")))
-                    self.le_username.setText(str(self.settings.get("usersettings").get("username")))
-                    self.le_password.setText(str(self.settings.get("usersettings").get("password")))
-                    self.cb_autologin.setChecked(self.settings.get("generalsettings").get("autologin"))
-                    self.cb_autoconnect.setChecked(self.settings.get("generalsettings").get("autoconnect"))
+                    self.login_widget_main.le_ip.setText(str(self.settings.get("serversettings").get("ip")))
+                    self.login_widget_main.le_port.setText(str(self.settings.get("serversettings").get("port")))
+                    self.login_widget_main.le_username.setText(str(self.settings.get("usersettings").get("username")))
+                    self.login_widget_main.le_password.setText(str(self.settings.get("usersettings").get("password")))
+                    self.login_widget_main.cb_autologin.setChecked(self.settings.get("generalsettings").get("autologin"))
+                    self.login_widget_main.cb_autoconnect.setChecked(self.settings.get("generalsettings").get("autoconnect"))
                     
                     if self.settings.get("generalsettings").get("autoconnect"):
                         self.connect_to_server()
@@ -200,7 +200,7 @@ class Client(QMainWindow):
                             data = (self.new_question_widget_main.le_question.text(), self.new_question_widget_main.le_wrong_answer_1.text(),
                                     self.new_question_widget_main.le_wrong_answer_2.text(), self.new_question_widget_main.le_wrong_answer_3.text(),
                                     self.new_question_widget_main.le_correct_answer.text(), self.new_question_widget_main.le_category.text(), 
-                                    self.le_username.text())
+                                    self.login_widget_main.le_username.text())
                                                
                             self.client.send(pickle.dumps(data))
 
@@ -288,7 +288,7 @@ class Client(QMainWindow):
                                     self.edit_question_widget_2_main.le_edit_wrong_answer_3.text(),
                                     self.edit_question_widget_2_main.le_edit_correct_answer.text(),
                                     self.edit_question_widget_2_main.le_edit_category.text(),
-                                    self.le_username.text(),
+                                    self.login_widget_main.le_username.text(),
                                     self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text())
                             
                             self.client.send(pickle.dumps(data))
@@ -330,12 +330,12 @@ class Client(QMainWindow):
                                "usersettings": {},
                                "generalsettings": {}}
                 
-                temp_config["serversettings"]["ip"] = self.le_ip.text()
-                temp_config["serversettings"]["port"] = int(self.le_port.text())
-                temp_config["usersettings"]["username"] = self.le_username.text()
-                temp_config["usersettings"]["password"] = self.le_password.text()
-                temp_config["generalsettings"]["autologin"] = self.cb_autologin.isChecked()
-                temp_config["generalsettings"]["autoconnect"] = self.cb_autoconnect.isChecked()
+                temp_config["serversettings"]["ip"] = self.login_widget_main.le_ip.text()
+                temp_config["serversettings"]["port"] = int(self.login_widget_main.le_port.text())
+                temp_config["usersettings"]["username"] = self.login_widget_main.le_username.text()
+                temp_config["usersettings"]["password"] = self.login_widget_main.le_password.text()
+                temp_config["generalsettings"]["autologin"] = self.login_widget_main.cb_autologin.isChecked()
+                temp_config["generalsettings"]["autoconnect"] = self.login_widget_main.cb_autoconnect.isChecked()
                 
                 with open("Config/clientsettings.json", "w") as f:
                     json.dump(temp_config, f, indent=4)
@@ -544,104 +544,10 @@ class Client(QMainWindow):
     def login_layout(self):
         self.login_widget = QWidget(self)
 
-        vbox = QVBoxLayout()
-        
+        self.login_widget_main = LoginWidget(self.login_widget)
 
-        hbox0 = QHBoxLayout()
-
-        lb_login = QLabel("Login")
-        lb_login.setFont(QFont("Times New Roman", 40, QFont.Bold))
-        lb_login.setAlignment(Qt.AlignCenter)
-        hbox0.addWidget(lb_login)
-
-        hbox_space0 = QHBoxLayout()
-        hbox_space0.addWidget(QLabel())
-
-
-        hbox1 = QHBoxLayout()
-        
-        lb_server = QLabel("Server IP")
-        lb_server.setFont(QFont("Times New Roman", 15, QFont.Cursive))
-        self.le_ip = QLineEdit()
-
-        hbox1.addWidget(lb_server)
-        hbox1.addWidget(self.le_ip)
-        hbox1.addStretch()
-        
-
-        hbox2 = QHBoxLayout()
-
-        lb_port = QLabel("Port")
-        lb_port.setFont(QFont("Times New Roman", 15, QFont.Cursive))
-        self.le_port = QLineEdit()
-
-        hbox2.addWidget(lb_port)
-        hbox2.addWidget(self.le_port)
-        hbox2.addStretch(1)
-
-
-        hbox_space1 = QHBoxLayout()
-        hbox_space1.addWidget(QLabel())
-
-
-        hbox3 = QHBoxLayout()
-
-        lb_username = QLabel("Benutzername")
-        lb_username.setFont(QFont("Times New Roman", 15, QFont.Cursive))
-        self.le_username = QLineEdit()
-
-        hbox3.addWidget(lb_username)
-        hbox3.addWidget(self.le_username)
-        hbox3.addStretch()
-
-
-        hbox4 = QHBoxLayout()
-
-        lb_password = QLabel("Passwort")
-        lb_password.setFont(QFont("Times New Roman", 15, QFont.Cursive))
-        self.le_password = QLineEdit()
-        self.le_password.setEchoMode(QLineEdit.Password)
-
-        hbox4.addWidget(lb_password)
-        hbox4.addWidget(self.le_password)
-        hbox4.addStretch()
-
-
-        hbox5 = QHBoxLayout()
-
-        self.cb_autologin = QCheckBox("Automatischer Login")
-        self.cb_autoconnect = QCheckBox("Automatisch Verbindung zum Server aufbauen")
-        
-        hbox5.addWidget(self.cb_autologin)
-        hbox5.addWidget(self.cb_autoconnect)
-        hbox5.addStretch()
-
-
-        hbox6 = QHBoxLayout()
-        
-        btn_save = QPushButton("Speichern und Ausführen")
-        btn_save.clicked.connect(self.save_execute_config)
-        btn_cancel = QPushButton("Abbrechen")
-        btn_cancel.clicked.connect(self.show_home)
-        hbox6.addStretch()
-        hbox6.addWidget(btn_save)
-        hbox6.addWidget(btn_cancel)
-
-
-        vbox.addLayout(hbox0)
-        vbox.addLayout(hbox_space0)
-        vbox.addLayout(hbox1)
-        vbox.addLayout(hbox2)
-        vbox.addLayout(hbox_space1)
-        vbox.addLayout(hbox3)
-        vbox.addLayout(hbox4)
-        vbox.addLayout(hbox5)
-
-        vbox.addStretch()
-
-        vbox.addLayout(hbox6)
-
-        self.login_widget.setLayout(vbox)
+        self.login_widget_main.btn_save.clicked.connect(self.save_execute_config)
+        self.login_widget_main.btn_cancel.clicked.connect(self.show_home)
 
         self.login_widget.hide()
     
@@ -731,7 +637,7 @@ class Client(QMainWindow):
 
         # Daten an Server senden, die dann in die Datenbank geschrieben wird
         try:
-            data = [self.correct_counter, end_time, self.le_username.text()]
+            data = [self.correct_counter, end_time, self.login_widget_main.le_username.text()]
             self.client.send(pickle.dumps(data))
 
             reply = pickle.loads(self.client.recv(2**16))
@@ -837,7 +743,7 @@ class Client(QMainWindow):
                 try:
                     self.client.send(pickle.dumps(4))
                     self.client.recv(2**16)  # Pseudo
-                    self.client.send(pickle.dumps(self.le_username.text()))
+                    self.client.send(pickle.dumps(self.login_widget_main.le_username.text()))
                     
                     all_questions = pickle.loads(self.client.recv(2**30))
 
@@ -891,7 +797,7 @@ class Client(QMainWindow):
                 
                 self.client.send(pickle.dumps(6))
                 self.client.recv(2**16) # Pseudo
-                self.client.send(pickle.dumps((self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text(), self.le_username.text())))
+                self.client.send(pickle.dumps((self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text(), self.login_widget_main.le_username.text())))
                 
                 question = pickle.loads(self.client.recv(2**16))
 

@@ -777,3 +777,109 @@ class EditQuestionWidget2(QWidget):
         vbox.addLayout(hbox4)
         
         self.parent.setLayout(vbox)
+
+
+class LoginWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+        
+        hbox0 = QHBoxLayout()
+
+        lb_login = QLabel("Login")
+        lb_login.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_login.setAlignment(Qt.AlignCenter)
+        hbox0.addWidget(lb_login)
+
+        hbox_space0 = QHBoxLayout()
+        hbox_space0.addWidget(QLabel())
+
+
+        hbox1 = QHBoxLayout()
+        
+        lb_server = QLabel("Server IP")
+        lb_server.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.le_ip = QLineEdit()
+
+        hbox1.addWidget(lb_server)
+        hbox1.addWidget(self.le_ip)
+        hbox1.addStretch()
+        
+
+        hbox2 = QHBoxLayout()
+
+        lb_port = QLabel("Port")
+        lb_port.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.le_port = QLineEdit()
+
+        hbox2.addWidget(lb_port)
+        hbox2.addWidget(self.le_port)
+        hbox2.addStretch(1)
+
+
+        hbox_space1 = QHBoxLayout()
+        hbox_space1.addWidget(QLabel())
+
+
+        hbox3 = QHBoxLayout()
+
+        lb_username = QLabel("Benutzername")
+        lb_username.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.le_username = QLineEdit()
+
+        hbox3.addWidget(lb_username)
+        hbox3.addWidget(self.le_username)
+        hbox3.addStretch()
+
+
+        hbox4 = QHBoxLayout()
+
+        lb_password = QLabel("Passwort")
+        lb_password.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.le_password = QLineEdit()
+        self.le_password.setEchoMode(QLineEdit.Password)
+
+        hbox4.addWidget(lb_password)
+        hbox4.addWidget(self.le_password)
+        hbox4.addStretch()
+
+
+        hbox5 = QHBoxLayout()
+
+        self.cb_autologin = QCheckBox("Automatischer Login")
+        self.cb_autoconnect = QCheckBox("Automatisch Verbindung zum Server aufbauen")
+        
+        hbox5.addWidget(self.cb_autologin)
+        hbox5.addWidget(self.cb_autoconnect)
+        hbox5.addStretch()
+
+
+        hbox6 = QHBoxLayout()
+        
+        self.btn_save = QPushButton("Speichern und Ausführen")
+        self.btn_cancel = QPushButton("Abbrechen")
+        hbox6.addStretch()
+        hbox6.addWidget(self.btn_save)
+        hbox6.addWidget(self.btn_cancel)
+
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space0)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox_space1)
+        vbox.addLayout(hbox3)
+        vbox.addLayout(hbox4)
+        vbox.addLayout(hbox5)
+
+        vbox.addStretch()
+
+        vbox.addLayout(hbox6)
+
+        self.parent.setLayout(vbox)
