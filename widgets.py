@@ -5,6 +5,82 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 
+class HomeWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+        lb_title = QLabel("Quiz")
+        lb_title.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_title.setAlignment(Qt.AlignCenter)
+        hbox0.addWidget(lb_title)
+
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+
+        hbox1 = QHBoxLayout()
+        self.btn_start_quiz = QPushButton("Neues Quiz")
+        self.btn_start_quiz.setFont(QFont("Times New Roman", 25, QFont.Cursive))
+        hbox1.addWidget(self.btn_start_quiz)
+        hbox1.addStretch()
+
+        hbox2 = QHBoxLayout()
+        self.btn_show_highscore = QPushButton("Highscoreliste")
+        self.btn_show_highscore.setFont(QFont("Times New Roman", 25, QFont.Cursive))
+        hbox2.addWidget(self.btn_show_highscore)
+        hbox2.addStretch()
+
+        hbox3 = QHBoxLayout()
+        self.btn_new_question = QPushButton("Neue Frage erstellen")
+        self.btn_new_question.setFont(QFont("Times New Roman", 25, QFont.Cursive))
+        hbox3.addWidget(self.btn_new_question)
+        hbox3.addStretch()
+
+        hbox4 = QHBoxLayout()
+        self.btn_edit_delete_question = QPushButton("Frage bearbeiten/löschen")
+        self.btn_edit_delete_question.setFont(QFont("Times New Roman", 25, QFont.Cursive))
+        hbox4.addWidget(self.btn_edit_delete_question)
+        hbox4.addStretch()
+
+        hbox5 = QHBoxLayout()
+        self.btn_login = QPushButton("Login")
+        self.btn_login.setFont(QFont("Times New Roman", 25, QFont.Cursive))
+        hbox5.addWidget(self.btn_login)
+        hbox5.addStretch()
+
+        hbox6 = QHBoxLayout()
+        self.lb_server_status = QLabel("Zurzeit mit keinem Server verbunden")
+        self.lb_server_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
+        self.lb_server_status.setStyleSheet("color: red")
+        hbox6.addStretch()
+        hbox6.addWidget(self.lb_server_status)
+
+        hbox7 = QHBoxLayout()
+        self.lb_login_status = QLabel("Nicht angemeldet")
+        self.lb_login_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
+        self.lb_login_status.setStyleSheet("color: red")
+        hbox7.addStretch()
+        hbox7.addWidget(self.lb_login_status)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox3)
+        vbox.addLayout(hbox4)
+        vbox.addLayout(hbox5)
+        vbox.addStretch()
+        vbox.addLayout(hbox6)
+        vbox.addLayout(hbox7)
+
+        self.parent.setLayout(vbox)
 
 class FinishedTab(QWidget):
     def __init__(self, parent=None):
@@ -84,7 +160,6 @@ class FinishedTab(QWidget):
         vbox.addLayout(hbox)
 
         self.parent.setLayout(vbox)
-
 
 
 class ResultWidget(QWidget):
