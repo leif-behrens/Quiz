@@ -5,6 +5,88 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 
+
+class FinishedTab(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+
+        lb_finished = QLabel("Quiz beendet")
+        lb_finished.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_finished.setAlignment(Qt.AlignCenter)
+        
+        hbox0.addWidget(lb_finished)
+
+
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+        
+        hbox1 = QHBoxLayout()
+
+        self.lb_result = QLabel()
+        self.lb_result.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox1.addWidget(self.lb_result)
+
+        
+        hbox2 = QHBoxLayout()
+        
+        self.lb_time = QLabel()
+        self.lb_time.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox2.addWidget(self.lb_time)
+
+        
+        hbox3 = QHBoxLayout()
+
+        self.lb_personal_place = QLabel()
+        self.lb_personal_place.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox3.addWidget(self.lb_personal_place)
+
+
+        hbox4 = QHBoxLayout()
+
+        self.lb_global_place = QLabel()
+        self.lb_global_place.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox4.addWidget(self.lb_global_place)
+
+
+        hbox = QHBoxLayout()
+        
+        self.lb_database_entry = QLabel()
+        self.lb_database_entry.setFont(QFont("Times New Roman", 8, QFont.Cursive))
+        self.lb_database_entry.setAlignment(Qt.AlignCenter)
+
+        self.btn_home = QPushButton("Home")
+
+        hbox.addWidget(self.lb_database_entry)
+        hbox.addStretch()
+        hbox.addWidget(self.btn_home)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addStretch()
+        vbox.addLayout(hbox3)
+        vbox.addLayout(hbox4)
+        vbox.addStretch()
+        vbox.addLayout(hbox)
+
+        self.parent.setLayout(vbox)
+
+
+
 class ResultWidget(QWidget):
     def __init__(self, tab_name, parent=None):
         """
@@ -133,11 +215,10 @@ class ResultWidget(QWidget):
 
 
 class HighscoreWidget(QWidget):
-    def __init__(self, parent=None, home_func=None):
+    def __init__(self, parent=None):
         super().__init__()
         
         self.parent = parent
-        self.home_func = home_func
 
         self.init_layout()
 
@@ -182,12 +263,11 @@ class HighscoreWidget(QWidget):
         hbox = QHBoxLayout()
         self.btn_refresh = QPushButton("Neu laden")
         
-        btn_home = QPushButton("Home")
-        btn_home.clicked.connect(self.home_func)
+        self.btn_home = QPushButton("Home")
 
         hbox.addWidget(self.btn_refresh)
         hbox.addStretch()
-        hbox.addWidget(btn_home)
+        hbox.addWidget(self.btn_home)
 
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox1)
@@ -197,3 +277,7 @@ class HighscoreWidget(QWidget):
 
 
         self.parent.setLayout(vbox)
+
+
+
+

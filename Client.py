@@ -693,89 +693,22 @@ class Client(QMainWindow):
     def results_layout(self):
         self.tab_result_main = QTabWidget(self)
 
-        self.tab_finished = QWidget()
-
-        vbox = QVBoxLayout()
-
-        hbox0 = QHBoxLayout()
-
-        lb_finished = QLabel("Quiz beendet")
-        lb_finished.setFont(QFont("Times New Roman", 40, QFont.Bold))
-        lb_finished.setAlignment(Qt.AlignCenter)
+        self.tab_finished_main = QWidget()
         
-        hbox0.addWidget(lb_finished)
+        self.tab_finished = FinishedTab(self.tab_finished_main)
+        self.tab_finished.btn_home.clicked.connect(self.show_home)
 
-
-        hbox_space = QHBoxLayout()
-        hbox_space.addWidget(QLabel())
-        
-        hbox1 = QHBoxLayout()
-
-        self.lb_result = QLabel()
-        self.lb_result.setFont(QFont("Times New Roman", 24, QFont.Cursive))
-
-        hbox1.addWidget(self.lb_result)
-
-        
-        hbox2 = QHBoxLayout()
-        
-        self.lb_time = QLabel()
-        self.lb_time.setFont(QFont("Times New Roman", 24, QFont.Cursive))
-
-        hbox2.addWidget(self.lb_time)
-
-        
-        hbox3 = QHBoxLayout()
-
-        self.lb_personal_place = QLabel()
-        self.lb_personal_place.setFont(QFont("Times New Roman", 24, QFont.Cursive))
-
-        hbox3.addWidget(self.lb_personal_place)
-
-
-        hbox4 = QHBoxLayout()
-
-        self.lb_global_place = QLabel()
-        self.lb_global_place.setFont(QFont("Times New Roman", 24, QFont.Cursive))
-
-        hbox4.addWidget(self.lb_global_place)
-
-
-        hbox = QHBoxLayout()
-        
-        self.lb_database_entry = QLabel()
-        self.lb_database_entry.setFont(QFont("Times New Roman", 8, QFont.Cursive))
-        self.lb_database_entry.setAlignment(Qt.AlignCenter)
-
-        btn_home = QPushButton("Home")
-        btn_home.clicked.connect(self.show_home)
-
-        hbox.addWidget(self.lb_database_entry)
-        hbox.addStretch()
-        hbox.addWidget(btn_home)
-
-        vbox.addLayout(hbox0)
-        vbox.addLayout(hbox_space)
-        vbox.addLayout(hbox1)
-        vbox.addLayout(hbox2)
-        vbox.addStretch()
-        vbox.addLayout(hbox3)
-        vbox.addLayout(hbox4)
-        vbox.addStretch()
-        vbox.addLayout(hbox)
-
-        self.tab_finished.setLayout(vbox)
-
-        self.tab_result_main.addTab(self.tab_finished, "Beendet")
+        self.tab_result_main.addTab(self.tab_finished_main, "Beendet")
 
         self.tab_result_main.hide()
 
     def highscore_layout(self):
         self.highscore_widget = QWidget(self)
 
-        self.highscore = HighscoreWidget(self.highscore_widget, self.show_home)
+        self.highscore = HighscoreWidget(self.highscore_widget)
 
         self.highscore.btn_refresh.clicked.connect(self.fill_highscore)
+        self.highscore.btn_home.clicked.connect(self.show_home)
 
         self.highscore_widget.hide()
 
@@ -1219,8 +1152,8 @@ class Client(QMainWindow):
 
         end_time = round(time.time() - self.quiz_time_start, 2)
 
-        self.lb_result.setText(f"Richtige Antworten: {self.correct_counter} von 15")
-        self.lb_time.setText(f"Zeit: {end_time} Sekunden")
+        self.tab_finished.lb_result.setText(f"Richtige Antworten: {self.correct_counter} von 15")
+        self.tab_finished.lb_time.setText(f"Zeit: {end_time} Sekunden")
 
         # Falls es bereits Tabs gibt, werden sie vorerst gelöscht
         for i in range(15, 0, -1):
@@ -1240,22 +1173,22 @@ class Client(QMainWindow):
             reply = pickle.loads(self.client.recv(2**16))
 
             if reply[0]:
-                self.lb_database_entry.setText("Datenbank-Eintrag wurde erstellt.")
-                self.lb_database_entry.setStyleSheet("color: green;")
+                self.tab_finished.lb_database_entry.setText("Datenbank-Eintrag wurde erstellt.")
+                self.tab_finished.lb_database_entry.setStyleSheet("color: green;")
             else:
-                self.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden.")
-                self.lb_database_entry.setStyleSheet("color: red;")
+                self.tab_finished.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden.")
+                self.tab_finished.lb_database_entry.setStyleSheet("color: red;")
             
 
             if reply[1] == 0:
-                self.lb_personal_place.setText(f"Persönlicher Platz: Konnte nicht ermittelt werden")
+                self.tab_finished.lb_personal_place.setText(f"Persönlicher Platz: Konnte nicht ermittelt werden")
             else:
-                self.lb_personal_place.setText(f"Persönlicher Platz: {str(reply[1])}")
+                self.tab_finished.lb_personal_place.setText(f"Persönlicher Platz: {str(reply[1])}")
 
             if reply[2] == 0:
-                self.lb_global_place.setText(f"Globaler Platz: Konnte nicht ermittelt werden")
+                self.tab_finished.lb_global_place.setText(f"Globaler Platz: Konnte nicht ermittelt werden")
             else:
-                self.lb_global_place.setText(f"Globaler Platz: {str(reply[2])}")
+                self.tab_finished.lb_global_place.setText(f"Globaler Platz: {str(reply[2])}")
 
         except Exception as e:
             self.connected = False
