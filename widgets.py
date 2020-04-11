@@ -233,86 +233,6 @@ class NewQuizWidget2(QWidget):
         self.parent.setLayout(vbox)
 
 
-class FinishedTab(QWidget):
-    def __init__(self, parent=None):
-        super().__init__()
-
-        self.parent = parent
-
-        self.init_layout()
-
-    def init_layout(self):
-        vbox = QVBoxLayout()
-
-        hbox0 = QHBoxLayout()
-
-        lb_finished = QLabel("Quiz beendet")
-        lb_finished.setFont(QFont("Times New Roman", 40, QFont.Bold))
-        lb_finished.setAlignment(Qt.AlignCenter)
-        
-        hbox0.addWidget(lb_finished)
-
-
-        hbox_space = QHBoxLayout()
-        hbox_space.addWidget(QLabel())
-        
-        hbox1 = QHBoxLayout()
-
-        self.lb_result = QLabel()
-        self.lb_result.setFont(QFont("Times New Roman", 24, QFont.Cursive))
-
-        hbox1.addWidget(self.lb_result)
-
-        
-        hbox2 = QHBoxLayout()
-        
-        self.lb_time = QLabel()
-        self.lb_time.setFont(QFont("Times New Roman", 24, QFont.Cursive))
-
-        hbox2.addWidget(self.lb_time)
-
-        
-        hbox3 = QHBoxLayout()
-
-        self.lb_personal_place = QLabel()
-        self.lb_personal_place.setFont(QFont("Times New Roman", 24, QFont.Cursive))
-
-        hbox3.addWidget(self.lb_personal_place)
-
-
-        hbox4 = QHBoxLayout()
-
-        self.lb_global_place = QLabel()
-        self.lb_global_place.setFont(QFont("Times New Roman", 24, QFont.Cursive))
-
-        hbox4.addWidget(self.lb_global_place)
-
-
-        hbox = QHBoxLayout()
-        
-        self.lb_database_entry = QLabel()
-        self.lb_database_entry.setFont(QFont("Times New Roman", 8, QFont.Cursive))
-        self.lb_database_entry.setAlignment(Qt.AlignCenter)
-
-        self.btn_home = QPushButton("Home")
-
-        hbox.addWidget(self.lb_database_entry)
-        hbox.addStretch()
-        hbox.addWidget(self.btn_home)
-
-        vbox.addLayout(hbox0)
-        vbox.addLayout(hbox_space)
-        vbox.addLayout(hbox1)
-        vbox.addLayout(hbox2)
-        vbox.addStretch()
-        vbox.addLayout(hbox3)
-        vbox.addLayout(hbox4)
-        vbox.addStretch()
-        vbox.addLayout(hbox)
-
-        self.parent.setLayout(vbox)
-
-
 class ResultWidget(QWidget):
     def __init__(self, tab_name, parent=None):
         """
@@ -440,6 +360,86 @@ class ResultWidget(QWidget):
         self.lb_last_editor_plus_date.setText(f"Frage zuletzt bearbeitet am: {str(datetime.datetime.fromtimestamp(question[10]).strftime('%d.%m.%Y %H:%M:%S'))} von {question[8]}")
 
 
+class FinishedTab(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+
+        lb_finished = QLabel("Quiz beendet")
+        lb_finished.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_finished.setAlignment(Qt.AlignCenter)
+        
+        hbox0.addWidget(lb_finished)
+
+
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+        
+        hbox1 = QHBoxLayout()
+
+        self.lb_result = QLabel()
+        self.lb_result.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox1.addWidget(self.lb_result)
+
+        
+        hbox2 = QHBoxLayout()
+        
+        self.lb_time = QLabel()
+        self.lb_time.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox2.addWidget(self.lb_time)
+
+        
+        hbox3 = QHBoxLayout()
+
+        self.lb_personal_place = QLabel()
+        self.lb_personal_place.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox3.addWidget(self.lb_personal_place)
+
+
+        hbox4 = QHBoxLayout()
+
+        self.lb_global_place = QLabel()
+        self.lb_global_place.setFont(QFont("Times New Roman", 24, QFont.Cursive))
+
+        hbox4.addWidget(self.lb_global_place)
+
+
+        hbox = QHBoxLayout()
+        
+        self.lb_database_entry = QLabel()
+        self.lb_database_entry.setFont(QFont("Times New Roman", 8, QFont.Cursive))
+        self.lb_database_entry.setAlignment(Qt.AlignCenter)
+
+        self.btn_home = QPushButton("Home")
+
+        hbox.addWidget(self.lb_database_entry)
+        hbox.addStretch()
+        hbox.addWidget(self.btn_home)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addStretch()
+        vbox.addLayout(hbox3)
+        vbox.addLayout(hbox4)
+        vbox.addStretch()
+        vbox.addLayout(hbox)
+
+        self.parent.setLayout(vbox)
+
+
 class HighscoreWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__()
@@ -505,5 +505,162 @@ class HighscoreWidget(QWidget):
         self.parent.setLayout(vbox)
 
 
+class NewQuestionWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox = QHBoxLayout()
+        
+        lb_question_ = QLabel("Neue Frage erstellen")
+        lb_question_.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_question_.setAlignment(Qt.AlignCenter)
+
+        hbox.addWidget(lb_question_)
+
+        hbox0 = QHBoxLayout()
+        lb_question = QLabel("Frage")
+        lb_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))
+        self.le_question = QLineEdit()
+        self.le_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))        
+        self.le_question.setStyleSheet("border: 1px solid black")
+
+        hbox0.addWidget(lb_question)
+        hbox0.addWidget(self.le_question)
+
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
 
 
+        hbox1 = QHBoxLayout()
+        lb_correct_answer = QLabel("Richtige Antwort  ")
+        lb_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_correct_answer = QLineEdit()
+        self.le_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))        
+        self.le_correct_answer.setStyleSheet("border: 1px solid black")
+
+        lb_wrong_answer_1 = QLabel("Falsche Antwort 1")
+        lb_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_wrong_answer_1 = QLineEdit()
+        self.le_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_wrong_answer_1.setStyleSheet("border: 1px solid black")
+        
+        
+        hbox1.addWidget(lb_correct_answer)
+        hbox1.addWidget(self.le_correct_answer)
+        hbox1.addStretch()
+        hbox1.addWidget(lb_wrong_answer_1)
+        hbox1.addWidget(self.le_wrong_answer_1)
+
+
+        hbox2 = QHBoxLayout()
+        
+        lb_wrong_answer_2 = QLabel("Falsche Antwort 2")
+        lb_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_wrong_answer_2 = QLineEdit()
+        self.le_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_wrong_answer_2.setStyleSheet("border: 1px solid black")
+
+        lb_wrong_answer_3 = QLabel("Falsche Antwort 3")
+        lb_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_wrong_answer_3 = QLineEdit()
+        self.le_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_wrong_answer_3.setStyleSheet("border: 1px solid black")
+
+        hbox2.addWidget(lb_wrong_answer_2)
+        hbox2.addWidget(self.le_wrong_answer_2)  
+        hbox2.addStretch()      
+        hbox2.addWidget(lb_wrong_answer_3)
+        hbox2.addWidget(self.le_wrong_answer_3)
+
+
+        hbox3 = QHBoxLayout()
+
+        lb_category = QLabel("Kategorie")
+        lb_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_category = QLineEdit()
+        self.le_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        self.le_category.setStyleSheet("border: 1px solid black")
+
+        hbox3.addWidget(lb_category)
+        hbox3.addWidget(self.le_category)
+
+
+        hbox4 = QHBoxLayout()
+
+        self.btn_save = QPushButton("Speichern")
+        self.btn_save.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+
+        self.btn_cancel = QPushButton("Abbrechen")
+        self.btn_cancel.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+    	
+        hbox4.addStretch()
+        hbox4.addWidget(self.btn_save)
+        hbox4.addWidget(self.btn_cancel)
+
+        vbox.addLayout(hbox)
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox3)
+        vbox.addStretch()
+        vbox.addLayout(hbox4)
+        
+        self.parent.setLayout(vbox)
+
+
+class EditQuestionLayout(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+        lb_edit_delete_question = QLabel("Frage bearbeiten/löschen")
+        lb_edit_delete_question.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_edit_delete_question.setAlignment(Qt.AlignCenter)
+
+        hbox0.addWidget(lb_edit_delete_question)
+
+
+        hbox1 = QHBoxLayout()
+
+        self.tw_edit_question = QTableWidget()
+        self.tw_edit_question.setColumnCount(7)
+        self.tw_edit_question.verticalHeader().hide()
+        self.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategory", "Author", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
+        
+        header = self.tw_edit_question.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        header.setSectionResizeMode(1, QHeaderView.Stretch)
+        header.setSectionResizeMode(2, QHeaderView.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
+        header.setSectionResizeMode(4, QHeaderView.Stretch)
+        header.setSectionResizeMode(5, QHeaderView.Stretch)
+        header.setSectionResizeMode(6, QHeaderView.Stretch)
+
+        hbox1.addWidget(self.tw_edit_question)
+
+
+        hbox = QHBoxLayout()
+        self.btn_home = QPushButton("Home")
+        hbox.addStretch()
+        hbox.addWidget(self.btn_home)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox)
+
+        self.parent.setLayout(vbox)

@@ -156,50 +156,50 @@ class Client(QMainWindow):
                     # Check der Eingabedaten
                     check_entry = True
 
-                    if not self.le_question.text().split():
-                        self.le_question.setStyleSheet("border: 1px solid red")
+                    if not self.new_question_widget_main.le_question.text().split():
+                        self.new_question_widget_main.le_question.setStyleSheet("border: 1px solid red")
                         check_entry = False
                     else:
-                        self.le_question.setStyleSheet("border: 1px solid black")
+                        self.new_question_widget_main.le_question.setStyleSheet("border: 1px solid black")
                     
-                    if not self.le_correct_answer.text().split():
-                        self.le_correct_answer.setStyleSheet("border: 1px solid red")
+                    if not self.new_question_widget_main.le_correct_answer.text().split():
+                        self.new_question_widget_main.le_correct_answer.setStyleSheet("border: 1px solid red")
                         check_entry = False
                     else:
-                        self.le_correct_answer.setStyleSheet("border: 1px solid black")
+                        self.new_question_widget_main.le_correct_answer.setStyleSheet("border: 1px solid black")
                     
-                    if not self.le_wrong_answer_1.text().split():
-                        self.le_wrong_answer_1.setStyleSheet("border: 1px solid red")
+                    if not self.new_question_widget_main.le_wrong_answer_1.text().split():
+                        self.new_question_widget_main.le_wrong_answer_1.setStyleSheet("border: 1px solid red")
                         check_entry = False
                     else:
-                        self.le_wrong_answer_1.setStyleSheet("border: 1px solid black")
+                        self.new_question_widget_main.le_wrong_answer_1.setStyleSheet("border: 1px solid black")
 
-                    if not self.le_wrong_answer_2.text().split():
-                        self.le_wrong_answer_2.setStyleSheet("border: 1px solid red")
+                    if not self.new_question_widget_main.le_wrong_answer_2.text().split():
+                        self.new_question_widget_main.le_wrong_answer_2.setStyleSheet("border: 1px solid red")
                         check_entry = False
                     else:
-                        self.le_wrong_answer_2.setStyleSheet("border: 1px solid black")
+                        self.new_question_widget_main.le_wrong_answer_2.setStyleSheet("border: 1px solid black")
 
-                    if not self.le_wrong_answer_3.text().split():
-                        self.le_wrong_answer_3.setStyleSheet("border: 1px solid red")
+                    if not self.new_question_widget_main.le_wrong_answer_3.text().split():
+                        self.new_question_widget_main.le_wrong_answer_3.setStyleSheet("border: 1px solid red")
                         check_entry = False
                     else:
-                        self.le_wrong_answer_3.setStyleSheet("border: 1px solid black")
+                        self.new_question_widget_main.le_wrong_answer_3.setStyleSheet("border: 1px solid black")
 
-                    if not self.le_category.text().split():
-                        self.le_category.setStyleSheet("border: 1px solid red")
+                    if not self.new_question_widget_main.le_category.text().split():
+                        self.new_question_widget_main.le_category.setStyleSheet("border: 1px solid red")
                         check_entry = False
                     else:
-                        self.le_category.setStyleSheet("border: 1px solid black")
+                        self.new_question_widget_main.le_category.setStyleSheet("border: 1px solid black")
                     
                     if check_entry:
                         try:
                             self.client.send(pickle.dumps(3))
                             self.client.recv(2**16)
 
-                            data = (self.le_question.text(), self.le_wrong_answer_1.text(),
-                                    self.le_wrong_answer_2.text(), self.le_wrong_answer_3.text(),
-                                    self.le_correct_answer.text(), self.le_category.text(), 
+                            data = (self.new_question_widget_main.le_question.text(), self.new_question_widget_main.le_wrong_answer_1.text(),
+                                    self.new_question_widget_main.le_wrong_answer_2.text(), self.new_question_widget_main.le_wrong_answer_3.text(),
+                                    self.new_question_widget_main.le_correct_answer.text(), self.new_question_widget_main.le_category.text(), 
                                     self.le_username.text())
                                                
                             self.client.send(pickle.dumps(data))
@@ -223,12 +223,12 @@ class Client(QMainWindow):
                             print(e)
                         
                         finally:                                
-                            self.le_question.clear()
-                            self.le_correct_answer.clear()
-                            self.le_wrong_answer_1.clear()
-                            self.le_wrong_answer_2.clear()
-                            self.le_wrong_answer_3.clear()
-                            self.le_category.clear()
+                            self.new_question_widget_main.le_question.clear()
+                            self.new_question_widget_main.le_correct_answer.clear()
+                            self.new_question_widget_main.le_wrong_answer_1.clear()
+                            self.new_question_widget_main.le_wrong_answer_2.clear()
+                            self.new_question_widget_main.le_wrong_answer_3.clear()
+                            self.new_question_widget_main.le_category.clear()
                             self.show_home()
 
                     else:
@@ -289,7 +289,7 @@ class Client(QMainWindow):
                                     self.le_edit_correct_answer.text(),
                                     self.le_edit_category.text(),
                                     self.le_username.text(),
-                                    self.tw_edit_question.item(self.tw_edit_question.currentRow(), 0).text())
+                                    self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text())
                             
                             self.client.send(pickle.dumps(data))
 
@@ -312,12 +312,12 @@ class Client(QMainWindow):
                             print(e)
                         
                         finally:                                
-                            self.le_question.clear()
-                            self.le_correct_answer.clear()
-                            self.le_wrong_answer_1.clear()
-                            self.le_wrong_answer_2.clear()
-                            self.le_wrong_answer_3.clear()
-                            self.le_category.clear()
+                            self.new_question_widget_main.le_question.clear()
+                            self.new_question_widget_main.le_correct_answer.clear()
+                            self.new_question_widget_main.le_wrong_answer_1.clear()
+                            self.new_question_widget_main.le_wrong_answer_2.clear()
+                            self.new_question_widget_main.le_wrong_answer_3.clear()
+                            self.new_question_widget_main.le_category.clear()
                             self.show_home()
 
                     else:
@@ -488,7 +488,6 @@ class Client(QMainWindow):
         self.new_quiz_widget_2_main.btn_answer_3.clicked.connect(lambda: self._next(self.new_quiz_widget_2_main.te_answer_3.toPlainText()))        
         self.new_quiz_widget_2_main.btn_answer_4.clicked.connect(lambda: self._next(self.new_quiz_widget_2_main.te_answer_4.toPlainText()))        
 
-        
         self.new_quiz_widget_2.hide()
 
     def results_layout(self):
@@ -515,156 +514,21 @@ class Client(QMainWindow):
 
     def new_question_layout(self):
         self.new_question_widget = QWidget(self)
-        # self.new_question_widget.resize(self.width, self.height-25)
         
-        vbox = QVBoxLayout()
+        self.new_question_widget_main = NewQuestionWidget(self.new_question_widget)
 
-        hbox = QHBoxLayout()
-        
-        lb_question_ = QLabel("Neue Frage erstellen")
-        lb_question_.setFont(QFont("Times New Roman", 40, QFont.Bold))
-        lb_question_.setAlignment(Qt.AlignCenter)
-
-        hbox.addWidget(lb_question_)
-
-        hbox0 = QHBoxLayout()
-        lb_question = QLabel("Frage")
-        lb_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))
-        self.le_question = QLineEdit()
-        self.le_question.setFont(QFont("Times New Roman", 15, QFont.Cursive))        
-        self.le_question.setStyleSheet("border: 1px solid black")
-
-        hbox0.addWidget(lb_question)
-        hbox0.addWidget(self.le_question)
-
-        hbox_space = QHBoxLayout()
-        hbox_space.addWidget(QLabel())
+        self.new_question_widget_main.btn_save.clicked.connect(self.save_new_question)
+        self.new_question_widget_main.btn_cancel.clicked.connect(self.show_home)
 
 
-        hbox1 = QHBoxLayout()
-        lb_correct_answer = QLabel("Richtige Antwort  ")
-        lb_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        self.le_correct_answer = QLineEdit()
-        self.le_correct_answer.setFont(QFont("Times New Roman", 12, QFont.Cursive))        
-        self.le_correct_answer.setStyleSheet("border: 1px solid black")
-
-        lb_wrong_answer_1 = QLabel("Falsche Antwort 1")
-        lb_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        self.le_wrong_answer_1 = QLineEdit()
-        self.le_wrong_answer_1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        self.le_wrong_answer_1.setStyleSheet("border: 1px solid black")
-        
-        
-        hbox1.addWidget(lb_correct_answer)
-        hbox1.addWidget(self.le_correct_answer)
-        hbox1.addStretch()
-        hbox1.addWidget(lb_wrong_answer_1)
-        hbox1.addWidget(self.le_wrong_answer_1)
-
-
-        hbox2 = QHBoxLayout()
-        
-        lb_wrong_answer_2 = QLabel("Falsche Antwort 2")
-        lb_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        self.le_wrong_answer_2 = QLineEdit()
-        self.le_wrong_answer_2.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        self.le_wrong_answer_2.setStyleSheet("border: 1px solid black")
-
-        lb_wrong_answer_3 = QLabel("Falsche Antwort 3")
-        lb_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        self.le_wrong_answer_3 = QLineEdit()
-        self.le_wrong_answer_3.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        self.le_wrong_answer_3.setStyleSheet("border: 1px solid black")
-
-        hbox2.addWidget(lb_wrong_answer_2)
-        hbox2.addWidget(self.le_wrong_answer_2)  
-        hbox2.addStretch()      
-        hbox2.addWidget(lb_wrong_answer_3)
-        hbox2.addWidget(self.le_wrong_answer_3)
-
-
-        hbox3 = QHBoxLayout()
-
-        lb_category = QLabel("Kategorie")
-        lb_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        self.le_category = QLineEdit()
-        self.le_category.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        self.le_category.setStyleSheet("border: 1px solid black")
-
-        hbox3.addWidget(lb_category)
-        hbox3.addWidget(self.le_category)
-
-
-        hbox4 = QHBoxLayout()
-
-        btn_save = QPushButton("Speichern")
-        btn_save.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-        btn_save.clicked.connect(self.save_new_question)
-
-        btn_cancel = QPushButton("Abbrechen")
-        btn_cancel.clicked.connect(self.show_home)
-        btn_cancel.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-    	
-        hbox4.addStretch()
-        hbox4.addWidget(btn_save)
-        hbox4.addWidget(btn_cancel)
-
-        vbox.addLayout(hbox)
-        vbox.addLayout(hbox0)
-        vbox.addLayout(hbox_space)
-        vbox.addLayout(hbox1)
-        vbox.addLayout(hbox2)
-        vbox.addLayout(hbox3)
-        vbox.addStretch()
-        vbox.addLayout(hbox4)
-        
-        self.new_question_widget.setLayout(vbox)
         self.new_question_widget.hide()
     
     def edit_question_layout_1(self):
         self.edit_question_widget_1 = QWidget(self)
 
-        vbox = QVBoxLayout()
-
-        hbox0 = QHBoxLayout()
-        lb_edit_delete_question = QLabel("Frage bearbeiten/löschen")
-        lb_edit_delete_question.setFont(QFont("Times New Roman", 40, QFont.Bold))
-        lb_edit_delete_question.setAlignment(Qt.AlignCenter)
-
-        hbox0.addWidget(lb_edit_delete_question)
-
-
-        hbox1 = QHBoxLayout()
-
-        self.tw_edit_question = QTableWidget()
-        self.tw_edit_question.setColumnCount(7)
-        self.tw_edit_question.verticalHeader().hide()
-        self.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategory", "Author", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
-        self.tw_edit_question.itemDoubleClicked.connect(self.show_edit_question_2)
-        
-        header = self.tw_edit_question.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        header.setSectionResizeMode(1, QHeaderView.Stretch)
-        header.setSectionResizeMode(2, QHeaderView.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.Stretch)
-        header.setSectionResizeMode(4, QHeaderView.Stretch)
-        header.setSectionResizeMode(5, QHeaderView.Stretch)
-        header.setSectionResizeMode(6, QHeaderView.Stretch)
-
-        hbox1.addWidget(self.tw_edit_question)
-
-
-        hbox = QHBoxLayout()
-        btn_home = QPushButton("Home")
-        btn_home.clicked.connect(self.show_home)
-        hbox.addStretch()
-        hbox.addWidget(btn_home)
-
-        vbox.addLayout(hbox0)
-        vbox.addLayout(hbox1)
-        vbox.addLayout(hbox)
-
-        self.edit_question_widget_1.setLayout(vbox)
+        self.edit_question_widget_1_main = EditQuestionLayout(self.edit_question_widget_1)
+        self.edit_question_widget_1_main.btn_home.clicked.connect(self.show_home)
+        self.edit_question_widget_1_main.tw_edit_question.itemDoubleClicked.connect(self.show_edit_question_2)
 
         self.edit_question_widget_1.hide()
 
@@ -1055,14 +919,14 @@ class Client(QMainWindow):
 
                 self.edit_question_widget_1.show()
 
-                self.tw_edit_question.clear()
-                self.tw_edit_question.setColumnCount(7)
-                self.tw_edit_question.setRowCount(0)
+                self.edit_question_widget_1_main.tw_edit_question.clear()
+                self.edit_question_widget_1_main.tw_edit_question.setColumnCount(7)
+                self.edit_question_widget_1_main.tw_edit_question.setRowCount(0)
 
-                self.tw_edit_question.verticalHeader().hide()
-                self.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategorie", "Autor", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
+                self.edit_question_widget_1_main.tw_edit_question.verticalHeader().hide()
+                self.edit_question_widget_1_main.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategorie", "Autor", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
 
-                header = self.tw_edit_question.horizontalHeader()
+                header = self.edit_question_widget_1_main.tw_edit_question.horizontalHeader()
                 header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
                 header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
                 header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
@@ -1079,18 +943,18 @@ class Client(QMainWindow):
                     all_questions = pickle.loads(self.client.recv(2**30))
 
                     for d in all_questions:
-                        row_pos = self.tw_edit_question.rowCount()
-                        self.tw_edit_question.insertRow(row_pos)
-                        self.tw_edit_question.setSelectionBehavior(QAbstractItemView.SelectRows)
-                        self.tw_edit_question.setEditTriggers(QAbstractItemView.NoEditTriggers)
+                        row_pos = self.edit_question_widget_1_main.tw_edit_question.rowCount()
+                        self.edit_question_widget_1_main.tw_edit_question.insertRow(row_pos)
+                        self.edit_question_widget_1_main.tw_edit_question.setSelectionBehavior(QAbstractItemView.SelectRows)
+                        self.edit_question_widget_1_main.tw_edit_question.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
-                        self.tw_edit_question.setItem(row_pos, 0, QTableWidgetItem(str(d[0])))
-                        self.tw_edit_question.setItem(row_pos, 1, QTableWidgetItem(str(d[1])))
-                        self.tw_edit_question.setItem(row_pos, 2, QTableWidgetItem(str(d[2])))
-                        self.tw_edit_question.setItem(row_pos, 3, QTableWidgetItem(str(d[3])))
-                        self.tw_edit_question.setItem(row_pos, 4, QTableWidgetItem(str(d[4])))
-                        self.tw_edit_question.setItem(row_pos, 5, QTableWidgetItem(str(datetime.datetime.fromtimestamp(d[5]).strftime('%d.%m.%Y %H:%M:%S'))))
-                        self.tw_edit_question.setItem(row_pos, 6, QTableWidgetItem(str(datetime.datetime.fromtimestamp(d[6]).strftime('%d.%m.%Y %H:%M:%S'))))
+                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 0, QTableWidgetItem(str(d[0])))
+                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 1, QTableWidgetItem(str(d[1])))
+                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 2, QTableWidgetItem(str(d[2])))
+                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 3, QTableWidgetItem(str(d[3])))
+                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 4, QTableWidgetItem(str(d[4])))
+                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 5, QTableWidgetItem(str(datetime.datetime.fromtimestamp(d[5]).strftime('%d.%m.%Y %H:%M:%S'))))
+                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 6, QTableWidgetItem(str(datetime.datetime.fromtimestamp(d[6]).strftime('%d.%m.%Y %H:%M:%S'))))
                                                 
                 except Exception as e:
                     self.connected = False
@@ -1128,7 +992,7 @@ class Client(QMainWindow):
                 
                 self.client.send(pickle.dumps(6))
                 self.client.recv(2**16) # Pseudo
-                self.client.send(pickle.dumps((self.tw_edit_question.item(self.tw_edit_question.currentRow(), 0).text(), self.le_username.text())))
+                self.client.send(pickle.dumps((self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text(), self.le_username.text())))
                 
                 question = pickle.loads(self.client.recv(2**16))
 
