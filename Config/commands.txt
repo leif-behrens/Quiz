@@ -1,7 +1,0 @@
-ID - Beschreibung
-
-1 - Neues Quiz
-2 - Highscoreliste
-3 - Neue Frage erstellen
-4 - Frage bearbeiten/löschen
-5 - Login
