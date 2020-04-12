@@ -112,7 +112,7 @@ class Client(QMainWindow):
             self.conn_tries = 0
             self.connect_to_server()
             self.authentication()
-             
+ 
     def authentication(self):
         if self.connected:
             if not self.authenticated:
@@ -284,8 +284,8 @@ class Client(QMainWindow):
                     
                     if check_entry:
                         try:
-                            self.client.send(pickle.dumps(7))
-                            self.client.recv(2**16)
+                            send(self.client, 7)    # Code, um die editierte Frage zu speichern
+                            recv(self.client)   # Pseudo
 
                             data = (self.edit_question_widget_2_main.le_edit_question.text(), 
                                     self.edit_question_widget_2_main.le_edit_wrong_answer_1.text(),
@@ -296,9 +296,9 @@ class Client(QMainWindow):
                                     self.login_widget_main.le_username.text(),
                                     self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text())
                             
-                            self.client.send(pickle.dumps(data))
+                            send(self.client, data)
 
-                            response = pickle.loads(self.client.recv(4096))
+                            response = recv(self.client)
                             
                             if response[0]:
                                 print("Frage erfolgreich gespeichert")
@@ -356,7 +356,7 @@ class Client(QMainWindow):
                 print(e)
         else:
             self.settings = {}
-    
+
     def _start_new_quiz(self):
         try:
             # Initialisiere Quiz-Varibalen
@@ -437,8 +437,8 @@ class Client(QMainWindow):
         header.setSectionResizeMode(3, QHeaderView.Stretch)
 
         try:
-            self.client.send(pickle.dumps(2))
-            data = pickle.loads(self.client.recv(2**16))
+            send(self.client, 2)    # Code für Highscoreliste füllen
+            data = recv(self.client)    # Daten erhalten
 
             for n, element in enumerate(data):
                 self.highscore.tw_highscore.setItem(n, 0, QTableWidgetItem(str(element[0])))
@@ -491,7 +491,7 @@ class Client(QMainWindow):
 
 
         self.new_quiz_widget_1.hide()
-    
+
     def new_quiz_layout_2(self):
         self.new_quiz_widget_2 = QWidget(self)
 
@@ -536,7 +536,7 @@ class Client(QMainWindow):
 
 
         self.new_question_widget.hide()
-    
+
     def edit_question_layout_1(self):
         self.edit_question_widget_1 = QWidget(self)
 
@@ -564,7 +564,7 @@ class Client(QMainWindow):
         self.login_widget_main.btn_cancel.clicked.connect(self.show_home)
 
         self.login_widget.hide()
-    
+
     def show_home(self):
         self.home_widget.hide()
         self.new_quiz_widget_1.hide()
@@ -592,7 +592,7 @@ class Client(QMainWindow):
                 self.login_widget.hide()
                 
                 self.new_quiz_widget_1.show()
-    
+
     def show_new_quiz_2(self):
         if self.connected:
             if self.authenticated:
@@ -758,11 +758,11 @@ class Client(QMainWindow):
                 header.setSectionResizeMode(6, QHeaderView.Stretch)
 
                 try:
-                    self.client.send(pickle.dumps(4))
-                    self.client.recv(2**16)  # Pseudo
-                    self.client.send(pickle.dumps(self.login_widget_main.le_username.text()))
+                    send(self.client, 4)    # Code um alle Fragen zu erhalten
+                    recv(self.client)   # Pseudo
+                    send(self.client, self.login_widget_main.le_username.text())
                     
-                    all_questions = pickle.loads(self.client.recv(2**30))
+                    all_questions = recv(self.client)
 
                     for d in all_questions:
                         row_pos = self.edit_question_widget_1_main.tw_edit_question.rowCount()
@@ -812,11 +812,11 @@ class Client(QMainWindow):
 
                 self.edit_question_widget_2.show()
                 
-                self.client.send(pickle.dumps(6))
-                self.client.recv(2**16) # Pseudo
-                self.client.send(pickle.dumps((self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text(), self.login_widget_main.le_username.text())))
-                
-                question = pickle.loads(self.client.recv(2**16))
+                send(self.client, 6)    # Code um genau eine Frage mit den wichtigesten Informationen zu erhalten
+                recv(self.client) # Pseudo
+                send(self.client, (self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text(), self.login_widget_main.le_username.text()))
+                                
+                question = recv(self.client)
 
                 self.edit_question_widget_2_main.le_edit_question.setText(str(question[0]))
                 self.edit_question_widget_2_main.le_edit_wrong_answer_1.setText(str(question[1]))

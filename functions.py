@@ -17,6 +17,9 @@ def recv(_socket, chunksize=32):
 
     while True:
         msg = _socket.recv(chunksize)
+
+        if not msg:
+            return msg
         
         if new_msg:
             msg_len = int(msg[:HEADER])            

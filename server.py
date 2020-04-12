@@ -82,7 +82,7 @@ class Server:
                     
                     person._cur.execute(query)
 
-                    client.send(pickle.dumps(person._cur.fetchall()))
+                    send(client, person._cur.fetchall())
 
                 elif data == 3:
                     # Neue Frage erstellen
@@ -101,8 +101,8 @@ class Server:
 
                 elif data == 4:
                     # Alle Fragen erhalten
-                    client.send("Edit".encode())
-                    user = pickle.loads(client.recv(2**16))   # Username empfangen
+                    send(client, "")
+                    user = recv(client) # Username empfangen
 
                     quiz = QuizDatabase("Database/quiz.db", user)
                     query = """
@@ -111,7 +111,7 @@ class Server:
                     """
                     quiz._cur.execute(query)
 
-                    client.send(pickle.dumps(quiz._cur.fetchall())) # Sende alle Fragen an Client
+                    send(client, quiz._cur.fetchall()) # Sende alle Fragen an Client
                 
                 elif data == 5:
                     # Login                    
@@ -123,8 +123,8 @@ class Server:
 
                 elif data == 6:
                     # Eine Frage erhalten
-                    client.send("Edit".encode())
-                    data = pickle.loads(client.recv(2**16))    # Erhalte Primary Key der zu bearbeitenden Frage sowie den Username
+                    send(client, "")
+                    data = recv(client)    # Erhalte Primary Key der zu bearbeitenden Frage sowie den Username
 
                     quiz = QuizDatabase("Database/quiz.db", data[1])
 
@@ -138,21 +138,21 @@ class Server:
 
                     question = quiz._cur.fetchone()
 
-                    client.send(pickle.dumps(question))
+                    send(client, question)
                 
                 elif data == 7:
                     # Speichere editierte Frage
-                    client.send("Edit".encode())
+                    send(client, "")
 
                     # Bearbeitete Frage und username
                     # [question, wrong_answer_1, 2, 3, correct_answer, category, username, primarykey]
-                    updated = pickle.loads(client.recv(2**16)) 
+                    updated = recv(client)
 
                     quiz = QuizDatabase("Database/quiz.db", updated[-2])
 
                     executed = quiz.change_question(*updated)
                     
-                    client.send(pickle.dumps(executed))
+                    send(client, executed)
 
                 elif data == 8:
                     # Quiz Resultate in Datenbank schreiben
@@ -212,10 +212,3 @@ class Server:
 if __name__ == "__main__":
     s = Server()
     s.run()
-    # d = PersonDatabase("Database/user.db")
-    # print(d.check_score_by_global(3, 4.44))
-    # print(d.check_score_by_username("lbehrens2", 3, 6.68))
-
-    # d = QuizDatabase("Database/quiz.db", "lbehrens2")
-    # print(d.new_question("Aadfsdfsdf", "sdfew", "q", "xvbftg", "rgeergerge", "23234"))
-    # p = PersonDatabase("Database/user.db")
