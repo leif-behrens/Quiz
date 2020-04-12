@@ -58,8 +58,9 @@ class Server:
 
                 if data == 1:
                     # Neues Quiz
-                    client.send("Neues Quiz".encode())
-                    username = pickle.loads(client.recv(2**16))
+                    send(client, "")
+
+                    username = recv(client)
 
                     # Quizdaten werden aus der Datenbank gelesen
                     quiz = QuizDatabase("Database/quiz.db", username)
@@ -69,31 +70,8 @@ class Server:
                     quiz._conn.close()
 
                     # Quizdaten werden an den Client gesendet
-                    client.send(pickle.dumps(data))
-
-                    # Ergebnisse des Quizes werden empfangen
-                    data = pickle.loads(client.recv(2**12))
-
-                    # Hier werden die empfangenen Daten in die Datenbank geschrieben
-                    person = PersonDatabase("Database/user.db")
-                    
-                    # Überprüfung, ob der Datensatz geschrieben werden konnte
-                    insert = person.new_score(data[0], data[1], data[2])
-
-                    person._conn.close()
-
-                    # DB wurde zunächst geschlossen um sicherzustellen, dass der letzte Eintrag schon
-                    # geschrieben wurde                    
-                    person = PersonDatabase("Database/user.db")
-
-                    place_personal = person.check_score_by_username(data[2], data[0], data[1])
-                    place_global = person.check_score_by_global(data[0], data[1])
-                    
-                    person._conn.close()
-                    
-                    # Der Bool der Überprüfung wird an den Client gesendet
-                    client.send(pickle.dumps((insert[0], place_personal, place_global)))                   
-
+                    send(client, data)
+                
                 elif data == 2:
                     # Highscoreliste
                     person = PersonDatabase("Database/user.db")
@@ -109,8 +87,7 @@ class Server:
                 elif data == 3:
                     # Neue Frage erstellen
                     # client.send("Neue Frage".encode())
-                    send(client, "neu")
-
+                    send(client, "")
 
                     # data = pickle.loads(client.recv(2**12))
                     data = recv(client)
@@ -138,7 +115,7 @@ class Server:
                 
                 elif data == 5:
                     # Login                    
-                    send(client, "login")
+                    send(client, "")
                     data = recv(client)
 
                     access = self.check_credentials(*data)
@@ -177,6 +154,33 @@ class Server:
                     
                     client.send(pickle.dumps(executed))
 
+                elif data == 8:
+                    # Quiz Resultate in Datenbank schreiben
+                    send(client, "")
+
+                    # Ergebnisse des Quizes werden empfangen
+                    data = recv(client)
+
+                    # Hier werden die empfangenen Daten in die Datenbank geschrieben
+                    person = PersonDatabase("Database/user.db")
+                    
+                    # Überprüfung, ob der Datensatz geschrieben werden konnte
+                    insert = person.new_score(data[0], data[1], data[2])
+
+                    person._conn.close()
+
+                    # DB wurde zunächst geschlossen um sicherzustellen, dass der letzte Eintrag schon
+                    # geschrieben wurde                    
+                    person = PersonDatabase("Database/user.db")
+
+                    place_personal = person.check_score_by_username(data[2], data[0], data[1])
+                    place_global = person.check_score_by_global(data[0], data[1])
+                    
+                    person._conn.close()
+                    
+                    # Der Bool der Überprüfung wird an den Client gesendet
+                    send(client, (insert[0], place_personal, place_global))
+           
             except Exception as e:
                 client.close()
                 print(e)

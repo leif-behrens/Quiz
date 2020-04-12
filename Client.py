@@ -199,17 +199,17 @@ class Client(QMainWindow):
                     
                     if check_entry:
                         try:
-                            self.client.send(pickle.dumps(3))
-                            self.client.recv(2**16)
-
+                            send(self.client, 3)    # Code neue Frage erstellen
+                            recv(self.client)   # Pseudo
+                            
                             data = (self.new_question_widget_main.le_question.text(), self.new_question_widget_main.le_wrong_answer_1.text(),
                                     self.new_question_widget_main.le_wrong_answer_2.text(), self.new_question_widget_main.le_wrong_answer_3.text(),
                                     self.new_question_widget_main.le_correct_answer.text(), self.new_question_widget_main.le_category.text(), 
                                     self.login_widget_main.le_username.text())
-                                               
-                            self.client.send(pickle.dumps(data))
 
-                            response = pickle.loads(self.client.recv(4096))
+                            send(self.client, data)
+
+                            response = recv(self.client)
                             
                             if response[0]:
                                 print("Frage erfolgreich gespeichert")
@@ -366,14 +366,17 @@ class Client(QMainWindow):
             self.answers = {}
             self.quiz_time_start = time.time()
 
-            self.client.send(pickle.dumps(1))
-            self.client.recv(2**16)
-            self.client.send(pickle.dumps(self.settings.get('usersettings').get('username')))
+            send(self.client, 1)
+            # self.client.send(pickle.dumps(1))
+            recv(self.client)   # Pseudo
+            # self.client.recv(2**16)
+            send(self.client, self.settings.get('usersettings').get('username'))    # Username wird gesendet
+            # self.client.send(pickle.dumps(self.settings.get('usersettings').get('username')))
 
             # Erhalte eine Liste mit Tuples für jede Frage (insgesamt 15)
             # (quiz_id, question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer,
             # category, author, editor, timestamp_creation, timestamp_lastchange)
-            self.questions = pickle.loads(self.client.recv(2**16))
+            self.questions = recv(self.client)
 
             if len(self.questions) != 15:
                 print("Nicht genügend Fragen vorhanden.")
@@ -648,10 +651,13 @@ class Client(QMainWindow):
 
         # Daten an Server senden, die dann in die Datenbank geschrieben wird
         try:
+            send(self.client, 8)    # Code zum speichern
+            recv(self.client)   # Pseudo
             data = [self.correct_counter, end_time, self.login_widget_main.le_username.text()]
-            self.client.send(pickle.dumps(data))
 
-            reply = pickle.loads(self.client.recv(2**16))
+            send(self.client, data)
+
+            reply = recv(self.client)
 
             if reply[0]:
                 self.finished_widget_main.lb_database_entry.setText("Datenbank-Eintrag wurde erstellt.")
