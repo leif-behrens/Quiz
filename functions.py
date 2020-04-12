@@ -1,32 +1,29 @@
 import pickle
 
-HEADER = 64
-CODING = "utf-8"
-
-def send_msg(_socket, pickle_object):
-    """
-    :param _socket: socket-Object
-    :param pickle_object: Bytes-Object
-    :return: None
-    """
-    _socket.send(str(len(pickle_object)).encode(CODING))
-    _socket.send(pickle_object)
+HEADER = 20
+FORMAT = "utf-8"
 
 
-def recv_msg(_socket, chunksize=1024):
-    """
-    :param _socket: socket-Object
-    :param chunksize: size of the chunks
-    :return: Object (unpickled)
-    """
-    len_msg = int(_socket.recv(HEADER).decode(CODING))
+def send(_socket, obj):
+    msg = pickle.dumps(obj)
 
-    msg = b""
+    msg_header = bytes(f"{len(msg):<{HEADER}}", FORMAT) + msg
+    _socket.send(msg_header)
+
+
+def recv(_socket, chunksize=32):    
+    full_msg = b""
+    new_msg = True
 
     while True:
-        if len(msg) == len_msg:
-            break
+        msg = _socket.recv(chunksize)
 
-        msg += _socket.recv(chunksize)
-    
-    return pickle.loads(msg)
+        if new_msg:
+            msg_len = int(msg[:HEADER])            
+            new_msg = False
+
+        full_msg += msg
+        
+        if len(full_msg) - HEADER == msg_len:
+            return pickle.loads(full_msg[HEADER:])
+

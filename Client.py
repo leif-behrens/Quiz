@@ -123,15 +123,20 @@ class Client(QMainWindow):
 
                     else:
                         try:
-                            self.client.send(pickle.dumps(5))
-                            self.client.recv(2**16)
+                            # Code für Login
+                            send(self.client, 5)
 
                             credentials = [self.settings.get("usersettings").get("username"), self.settings.get("usersettings").get("password")]
-                            pickled = pickle.dumps(credentials)
+
+                            # Pseudo
+                            recv(self.client)
 
                             try:
-                                self.client.send(pickled)
-                                response = pickle.loads(self.client.recv(2**16))
+
+                                send(self.client, credentials)
+
+                                # access
+                                response = recv(self.client)
                                 self.authenticated = response[0]
                                 self.admin = response[1]
                                 

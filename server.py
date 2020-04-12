@@ -50,7 +50,7 @@ class Server:
         while True:
             # Es wird auf neue Daten gewartet. Es handelt sich um vordefinierte Commands
             try:
-                data = pickle.loads(client.recv(2**16))
+                data = recv(client)
 
                 if not data:
                     client.close()
@@ -106,17 +106,20 @@ class Server:
 
                     client.send(pickle.dumps(person._cur.fetchall()))
 
-
                 elif data == 3:
                     # Neue Frage erstellen
-                    client.send("Neue Frage".encode())
+                    # client.send("Neue Frage".encode())
+                    send(client, "neu")
 
-                    data = pickle.loads(client.recv(2**12))
+
+                    # data = pickle.loads(client.recv(2**12))
+                    data = recv(client)
                     
                     quiz = QuizDatabase("Database/quiz.db", data[-1])
                     insert_question = quiz.new_question(*data[0:-1])
                     
-                    client.send(pickle.dumps(insert_question))
+                    # client.send(pickle.dumps(insert_question))
+                    send(client, insert_question)
                     quiz._conn.close()
 
                 elif data == 4:
@@ -134,12 +137,12 @@ class Server:
                     client.send(pickle.dumps(quiz._cur.fetchall())) # Sende alle Fragen an Client
                 
                 elif data == 5:
-                    # Login
-                    client.send("Login".encode())
-                    data = pickle.loads(client.recv(2**12))
-                    
+                    # Login                    
+                    send(client, "login")
+                    data = recv(client)
+
                     access = self.check_credentials(*data)
-                    client.send(pickle.dumps(access))
+                    send(client, access)
 
                 elif data == 6:
                     # Eine Frage erhalten
@@ -174,12 +177,10 @@ class Server:
                     
                     client.send(pickle.dumps(executed))
 
-
-
             except Exception as e:
                 client.close()
-                break
                 print(e)
+                break
         
 
     def check_credentials(self, username, password):
