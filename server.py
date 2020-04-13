@@ -179,30 +179,47 @@ class Server:
                     
                     # Der Bool der Überprüfung wird an den Client gesendet
                     send(client, (insert[0], place_personal, place_global))
-           
+
+                elif data == 9:
+                    # Username Check
+                    send(client, "")
+                    
+                    data = recv(client)
+
+                    person = PersonDatabase("Database/user.db")
+
+                    # Es wird versucht, einen neuen User zu erstellen
+                    new_user = person.new_user(*data)
+
+                    person._conn.close()
+
+                    send(client, new_user)
+
+
             except Exception as e:
                 client.close()
                 print(e)
                 break
-        
 
-    def check_credentials(self, username, password):
+    def check_credentials(self, username, password_hash):
         person = PersonDatabase("Database/user.db")
 
-        hashed_password = hashlib.sha256()
-        hashed_password.update(password.encode("utf-8"))
-
-        access = person.check_access(username, hashed_password.hexdigest())
+        access = person.check_access(username, password_hash)
         
         if access:
             person._cur.execute("SELECT admin FROM user WHERE username = ?", (username,))
+            data = person._cur.fetchone()[0]
+            
+            person._conn.close()
 
-            return access, eval(person._cur.fetchone()[0])
+            return access, eval(data)
 
         else:
+            person._conn.close()
             return access, False
         
-        person._conn.close()
+    def __del__(self):
+        self.sock.close()
 
 
 if __name__ == "__main__":

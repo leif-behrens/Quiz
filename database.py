@@ -16,7 +16,7 @@ class PersonDatabase:
             f_name TEXT,
             l_name TEXT,
             email TEXT,
-            admin BOOL
+            admin TEXT
         )
         """
 
@@ -54,7 +54,7 @@ class PersonDatabase:
         # Check if username exists
         exists = self._cur.execute("SELECT * FROM user WHERE username = ?", (username,))
 
-        if exists is None:
+        if exists.fetchone() is None:
             query = """
             INSERT INTO user (username, password, f_name, l_name, email, admin) VALUES (
                 ?, ?, ?, ?, ?, ?
@@ -62,7 +62,7 @@ class PersonDatabase:
             """
 
             try:
-                self._cur.execute(query, (username, password_hash, f_name, l_name, admin))
+                self._cur.execute(query, (username, password_hash, f_name, l_name, email, str(admin)))
                 self._conn.commit()
                 return True, ""
 

@@ -850,14 +850,16 @@ class LoginWidget(QWidget):
         hbox4.addWidget(self.le_password)
         hbox4.addStretch()
 
+        
+        hbox_space2 = QHBoxLayout()
+        hbox_space2.addWidget(QLabel())
+
 
         hbox5 = QHBoxLayout()
 
-        self.cb_autologin = QCheckBox("Automatischer Login")
-        self.cb_autoconnect = QCheckBox("Automatisch Verbindung zum Server aufbauen")
-        
-        hbox5.addWidget(self.cb_autologin)
-        hbox5.addWidget(self.cb_autoconnect)
+        self.btn_new_account = QPushButton("Erstelle neuen Account")
+
+        hbox5.addWidget(self.btn_new_account)
         hbox5.addStretch()
 
 
@@ -878,9 +880,7 @@ class LoginWidget(QWidget):
         vbox.addLayout(hbox3)
         vbox.addLayout(hbox4)
         vbox.addLayout(hbox5)
-
         vbox.addStretch()
-
         vbox.addLayout(hbox6)
 
         self.parent.setLayout(vbox)
@@ -898,7 +898,7 @@ class CreateAccountWidget(QWidget):
         vbox_main = QVBoxLayout()
 
         hbox_header = QHBoxLayout()
-        lb_new_account = QLabel("Neue Account")
+        lb_new_account = QLabel("Neuer Account")
         lb_new_account.setFont(QFont("Times New Roman", 40, QFont.Bold))
         lb_new_account.setAlignment(Qt.AlignCenter)
         hbox_header.addWidget(lb_new_account)
@@ -925,16 +925,20 @@ class CreateAccountWidget(QWidget):
         hbox3_v0.addWidget(lb_username)
 
         hbox4_v0 = QHBoxLayout()
-        self.lb_status = QLabel("a")
-        hbox4_v0.addWidget(self.lb_status)
+        lb_password = QLabel("Passwort")
+        hbox4_v0.addWidget(lb_password)
+
+        hbox5_v0 = QHBoxLayout()
+        self.lb_status = QLabel()
+        hbox5_v0.addWidget(self.lb_status)
 
 
         vbox0.addLayout(hbox0_v0)
         vbox0.addLayout(hbox1_v0)
         vbox0.addLayout(hbox2_v0)
         vbox0.addLayout(hbox3_v0)
-        vbox0.addStretch()
         vbox0.addLayout(hbox4_v0)
+        vbox0.addLayout(hbox5_v0)
 
 
         vbox1 = QVBoxLayout()
@@ -956,11 +960,18 @@ class CreateAccountWidget(QWidget):
         hbox3_v1.addWidget(self.le_username)
 
         hbox4_v1 = QHBoxLayout()
+        self.le_password = QLineEdit()
+        self.le_password.setEchoMode(QLineEdit.Password)
+        hbox4_v1.addWidget(self.le_password)
+
+        hbox5_v1 = QHBoxLayout()
         self.btn_ok = QPushButton("OK")
+        self.btn_back = QPushButton("Zurück")
         self.btn_cancel = QPushButton("Abbrechen")
-        hbox4_v1.addStretch()
-        hbox4_v1.addWidget(self.btn_ok)
-        hbox4_v1.addWidget(self.btn_cancel)
+        hbox5_v1.addStretch()
+        hbox5_v1.addWidget(self.btn_ok)
+        hbox5_v1.addWidget(self.btn_back)
+        hbox5_v1.addWidget(self.btn_cancel)
 
 
         vbox1.addLayout(hbox0_v1)
@@ -968,6 +979,7 @@ class CreateAccountWidget(QWidget):
         vbox1.addLayout(hbox2_v1)
         vbox1.addLayout(hbox3_v1)
         vbox1.addLayout(hbox4_v1)
+        vbox1.addLayout(hbox5_v1)
 
         hbox_main.addLayout(vbox0)
         hbox_main.addLayout(vbox1)
@@ -977,7 +989,7 @@ class CreateAccountWidget(QWidget):
         vbox_main.addLayout(hbox_main)
         vbox_main.addStretch(2)
 
-        self.setLayout(vbox_main)
+        self.parent.setLayout(vbox_main)
 
 
 if __name__ == "__main__":

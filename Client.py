@@ -9,6 +9,7 @@ import time
 import random
 import datetime
 from pathlib import Path
+import hashlib
 
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -37,9 +38,6 @@ class Client(QMainWindow):
         self.authenticated = False
         self.admin = False
 
-        self.conn_tries = 0
-        self.auth_tries = 0        
-
         if os.path.exists("Config/clientsettings.json"):
             with open("Config/clientsettings.json") as f:
                 try:
@@ -49,13 +47,8 @@ class Client(QMainWindow):
                     self.login_widget_main.le_port.setText(str(self.settings.get("serversettings").get("port")))
                     self.login_widget_main.le_username.setText(str(self.settings.get("usersettings").get("username")))
                     self.login_widget_main.le_password.setText(str(self.settings.get("usersettings").get("password")))
-                    self.login_widget_main.cb_autologin.setChecked(self.settings.get("generalsettings").get("autologin"))
-                    self.login_widget_main.cb_autoconnect.setChecked(self.settings.get("generalsettings").get("autoconnect"))
                     
-                    if self.settings.get("generalsettings").get("autoconnect"):
-                        self.connect_to_server()
-
-
+                    self.connect_to_server()
 
                 except Exception as e:
                     self.settings = {}
@@ -74,42 +67,33 @@ class Client(QMainWindow):
         if not self.connected:
             if self.settings:
                 
-                if self.auth_tries >= 3:
-                    pass
+                try:
+                    self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.client.connect((self.settings.get("serversettings").get("ip"), self.settings.get("serversettings").get("port")))
+                    self.client.settimeout(3)
+                    
+                    self.connected = True
 
-                else:
-                    try:
-                        self.client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                        self.client.connect((self.settings.get("serversettings").get("ip"), self.settings.get("serversettings").get("port")))
-                        self.client.settimeout(3)
-                        
-                        self.connected = True
+                    self.home_widget_main.lb_server_status.setText(f"Verbunden mit Server '{self.settings.get('serversettings').get('ip')}:{self.settings.get('serversettings').get('port')}'")
+                    self.home_widget_main.lb_server_status.setStyleSheet("color: green")
+                    
+                    self.authentication()
 
-                        self.home_widget_main.lb_server_status.setText(f"Verbunden mit Server '{self.settings.get('serversettings').get('ip')}:{self.settings.get('serversettings').get('port')}'")
-                        self.home_widget_main.lb_server_status.setStyleSheet("color: green")
-                        if self.settings.get("generalsettings").get("autologin"):
-                            self.authentication()
-                        else:
-                            self.authenticated = False
-
-                    except Exception as e:
-                        self.auth_tries += 1
-                        self.connected = False
-                        self.authenticated = False
-                        self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
-                        self.home_widget_main.lb_server_status.setStyleSheet("color: red")
-                        
-                        self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
-                        self.home_widget_main.lb_login_status.setStyleSheet("color: red")
-                        self.client.close()
-                        
-                        print(e)
-        
+                except Exception as e:
+                    self.connected = False
+                    self.authenticated = False
+                    self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+                    self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+                    
+                    self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+                    self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+                    self.client.close()
+                    
+                    print(e)
+    
         else:
             self.connected = False
             self.authenticated = False
-            self.auth_tries = 0
-            self.conn_tries = 0
             self.connect_to_server()
             self.authentication()
  
@@ -117,42 +101,39 @@ class Client(QMainWindow):
         if self.connected:
             if not self.authenticated:
                 if self.settings:
-                    
-                    if self.auth_tries >= 3:
-                        pass
+                    try:
+                        # Code für Login
+                        send(self.client, 5)
 
-                    else:
+                        sha256 = hashlib.sha256()
+                        sha256.update(self.settings.get("usersettings").get("password").encode())
+
+                        credentials = [self.settings.get("usersettings").get("username"), sha256.hexdigest()]
+
+                        # Pseudo
+                        recv(self.client)
+
                         try:
-                            # Code für Login
-                            send(self.client, 5)
 
-                            credentials = [self.settings.get("usersettings").get("username"), self.settings.get("usersettings").get("password")]
+                            send(self.client, credentials)
 
-                            # Pseudo
-                            recv(self.client)
-
-                            try:
-
-                                send(self.client, credentials)
-
-                                # access
-                                response = recv(self.client)
-                                self.authenticated = response[0]
-                                self.admin = response[1]
-                                
-                                if self.authenticated:
-                                    self.home_widget_main.lb_login_status.setText(f"Angemeldet als '{self.settings.get('usersettings').get('username')}'")
-                                    self.home_widget_main.lb_login_status.setStyleSheet("color: green")
-                                else:
-                                    self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
-                                    self.home_widget_main.lb_login_status.setStyleSheet("color: red")          
-
-                            except Exception as e:
-                                self.auth_tries += 1    
-                                print(e)
+                            # access
+                            response = recv(self.client)
+                            self.authenticated = response[0]
+                            self.admin = response[1]
+                            
+                            if self.authenticated:
+                                self.home_widget_main.lb_login_status.setText(f"Angemeldet als '{self.settings.get('usersettings').get('username')}'")
+                                self.home_widget_main.lb_login_status.setStyleSheet("color: green")
+                            else:
+                                self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+                                self.home_widget_main.lb_login_status.setStyleSheet("color: red")          
 
                         except Exception as e:
                             print(e)
+
+                    except Exception as e:
+                        print(e)
 
     def save_new_question(self):
         if self.connected:
@@ -339,8 +320,6 @@ class Client(QMainWindow):
                 temp_config["serversettings"]["port"] = int(self.login_widget_main.le_port.text())
                 temp_config["usersettings"]["username"] = self.login_widget_main.le_username.text()
                 temp_config["usersettings"]["password"] = self.login_widget_main.le_password.text()
-                temp_config["generalsettings"]["autologin"] = self.login_widget_main.cb_autologin.isChecked()
-                temp_config["generalsettings"]["autoconnect"] = self.login_widget_main.cb_autoconnect.isChecked()
                 
                 with open("Config/clientsettings.json", "w") as f:
                     json.dump(temp_config, f, indent=4)
@@ -458,6 +437,82 @@ class Client(QMainWindow):
             
             print(e)
 
+    def create_account(self):
+        check_entry = True
+
+        if not self.new_account_widget_main.le_fname.text().split():
+            self.new_account_widget_main.le_fname.setStyleSheet("border: 1px solid red")
+            check_entry = False
+        else:
+            self.new_account_widget_main.le_fname.setStyleSheet("border: 1px solid black")
+
+        if not self.new_account_widget_main.le_lname.text().split():
+            self.new_account_widget_main.le_lname.setStyleSheet("border: 1px solid red")
+            check_entry = False
+        else:
+            self.new_account_widget_main.le_lname.setStyleSheet("border: 1px solid black")
+
+        if not self.new_account_widget_main.le_email.text().split():
+            self.new_account_widget_main.le_email.setStyleSheet("border: 1px solid red")
+            check_entry = False
+        else:
+            self.new_account_widget_main.le_email.setStyleSheet("border: 1px solid black")
+        
+        if not self.new_account_widget_main.le_username.text().split():
+            self.new_account_widget_main.le_username.setStyleSheet("border: 1px solid red")
+            check_entry = False
+        else:
+            self.new_account_widget_main.le_username.setStyleSheet("border: 1px solid black")
+
+        if check_entry:
+            send(self.client, 9)    # Code zum erstellen eines Accounts
+            recv(self.client)   # Pseudo
+
+            sha256 = hashlib.sha256()
+            sha256.update(self.new_account_widget_main.le_password.text().encode())
+
+            data = [self.new_account_widget_main.le_username.text(), sha256.hexdigest(), 
+                    self.new_account_widget_main.le_fname.text(), self.new_account_widget_main.le_lname.text(),
+                    self.new_account_widget_main.le_email.text()]
+            
+            send(self.client, data)
+
+            response = recv(self.client)
+
+            if response[0]:
+                self.new_account_widget_main.lb_status.setText("Account wurde erstellt")
+                self.new_account_widget_main.lb_status.setStyleSheet("color: green;")
+
+                self.login_widget_main.le_username.setText(self.new_account_widget_main.le_username.text())
+                self.login_widget_main.le_password.setText(self.new_account_widget_main.le_password.text())
+
+                self.new_account_widget_main.le_fname.clear()
+                self.new_account_widget_main.le_lname.clear()
+                self.new_account_widget_main.le_email.clear()
+                self.new_account_widget_main.le_username.clear()
+                self.new_account_widget_main.le_password.clear()
+
+            else:
+                if response[1] == "Username already exists":
+                    self.new_account_widget_main.lb_status.setText("Der Benutzername existiert bereits")
+                    self.new_account_widget_main.lb_status.setStyleSheet("color: red;")
+
+                    self.new_account_widget_main.le_username.clear()
+                    self.new_account_widget_main.le_password.clear()
+                
+                else:
+                    self.new_account_widget_main.lb_status.setText(f"Account konnte nicht erstellt werden. Folgender Fehler ist aufgetreten: {response[1]}")
+                    self.new_account_widget_main.lb_status.setStyleSheet("color: red;")
+
+                    self.new_account_widget_main.le_fname.clear()
+                    self.new_account_widget_main.le_lname.clear()
+                    self.new_account_widget_main.le_email.clear()
+                    self.new_account_widget_main.le_username.clear()
+                    self.new_account_widget_main.le_password.clear()
+        else:
+            self.new_account_widget_main.lb_status.setText("Bitte alle Felder ausfüllen")
+            self.new_account_widget_main.lb_status.setStyleSheet("color: red;")
+
     def init_layouts(self):
         self.home_layout()
         self.new_quiz_layout_1()
@@ -468,6 +523,7 @@ class Client(QMainWindow):
         self.edit_question_layout_1()
         self.edit_question_layout_2()
         self.login_layout()
+        self.new_account_layout()
 
         self.show()
 
@@ -562,8 +618,20 @@ class Client(QMainWindow):
 
         self.login_widget_main.btn_save.clicked.connect(self.save_execute_config)
         self.login_widget_main.btn_cancel.clicked.connect(self.show_home)
+        self.login_widget_main.btn_new_account.clicked.connect(self.show_new_account)
 
         self.login_widget.hide()
+
+    def new_account_layout(self):
+        self.new_account_widget = QWidget(self)
+
+        self.new_account_widget_main = CreateAccountWidget(self.new_account_widget)
+        self.new_account_widget_main.btn_ok.clicked.connect(self.create_account)
+        self.new_account_widget_main.btn_cancel.clicked.connect(self.show_home)
+        self.new_account_widget_main.btn_back.clicked.connect(self.show_login)
+
+
+        self.new_account_widget.hide()
 
     def show_home(self):
         self.home_widget.hide()
@@ -575,6 +643,7 @@ class Client(QMainWindow):
         self.edit_question_widget_1.hide()
         self.edit_question_widget_2.hide()
         self.login_widget.hide()
+        self.new_account_widget.hide()
         
         self.home_widget.show()
 
@@ -590,6 +659,7 @@ class Client(QMainWindow):
                 self.edit_question_widget_1.hide()
                 self.edit_question_widget_2.hide()
                 self.login_widget.hide()
+                self.new_account_widget.hide()
                 
                 self.new_quiz_widget_1.show()
 
@@ -605,6 +675,8 @@ class Client(QMainWindow):
                 self.edit_question_widget_1.hide()
                 self.edit_question_widget_2.hide()
                 self.login_widget.hide()
+                self.new_account_widget.hide()
+
                 self.new_quiz_widget_2.show()
 
                 self.current_index = 0
@@ -631,6 +703,7 @@ class Client(QMainWindow):
         self.edit_question_widget_1.hide()
         self.edit_question_widget_2.hide()
         self.login_widget.hide()
+        self.new_account_widget.hide()
         
         self.tab_result_main.show()
 
@@ -704,6 +777,7 @@ class Client(QMainWindow):
             self.edit_question_widget_1.hide()
             self.edit_question_widget_2.hide()
             self.login_widget.hide()
+            self.new_account_widget.hide()
 
             self.highscore_widget.show()
             
@@ -720,7 +794,8 @@ class Client(QMainWindow):
                 self.new_question_widget.hide()
                 self.edit_question_widget_1.hide()
                 self.edit_question_widget_2.hide()
-                self.login_widget.hide()
+                self.login_widget.hide()                        
+                self.new_account_widget.hide()
 
                 self.new_question_widget.show()
             else:
@@ -738,6 +813,7 @@ class Client(QMainWindow):
                 self.edit_question_widget_1.hide()
                 self.edit_question_widget_2.hide()
                 self.login_widget.hide()
+                self.new_account_widget.hide()
 
                 self.edit_question_widget_1.show()
 
@@ -809,6 +885,7 @@ class Client(QMainWindow):
                 self.edit_question_widget_1.hide()
                 self.edit_question_widget_2.hide()
                 self.login_widget.hide()
+                self.new_account_widget.hide()
 
                 self.edit_question_widget_2.show()
                 
@@ -838,8 +915,30 @@ class Client(QMainWindow):
         self.edit_question_widget_1.hide()
         self.edit_question_widget_2.hide()
         self.login_widget.hide()
+        self.new_account_widget.hide()
         
         self.login_widget.show()
+
+    def show_new_account(self):
+        self.home_widget.hide()
+        self.new_quiz_widget_1.hide()
+        self.new_quiz_widget_2.hide()
+        self.tab_result_main.hide()
+        self.highscore_widget.hide()
+        self.new_question_widget.hide()
+        self.edit_question_widget_1.hide()
+        self.edit_question_widget_2.hide()
+        self.login_widget.hide()
+        self.new_account_widget.hide()
+        
+        self.new_account_widget.show()
+
+        self.new_account_widget_main.le_fname.setStyleSheet("border: 1px solid black")
+        self.new_account_widget_main.le_lname.setStyleSheet("border: 1px solid black")
+        self.new_account_widget_main.le_email.setStyleSheet("border: 1px solid black")
+        self.new_account_widget_main.le_username.setStyleSheet("border: 1px solid black")
+        self.new_account_widget_main.lb_status.clear()
+        self.new_account_widget_main.lb_status.setStyleSheet("color: black;")
 
     def resizeEvent(self, event):
         self.width = self.frameGeometry().width()
@@ -854,6 +953,7 @@ class Client(QMainWindow):
         self.edit_question_widget_1.resize(self.width, self.height-25)
         self.edit_question_widget_2.resize(self.width, self.height-25)
         self.login_widget.resize(self.width, self.height-25)
+        self.new_account_widget.resize(self.width, self.height-25)
 
 
 if __name__ == "__main__":
