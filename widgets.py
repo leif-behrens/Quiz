@@ -1,4 +1,5 @@
 import datetime
+import sys
 
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
@@ -883,3 +884,104 @@ class LoginWidget(QWidget):
         vbox.addLayout(hbox6)
 
         self.parent.setLayout(vbox)
+
+
+class CreateAccountWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox_main = QVBoxLayout()
+
+        hbox_header = QHBoxLayout()
+        lb_new_account = QLabel("Neue Account")
+        lb_new_account.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_new_account.setAlignment(Qt.AlignCenter)
+        hbox_header.addWidget(lb_new_account)
+        
+
+        hbox_main = QHBoxLayout()        
+
+        vbox0 = QVBoxLayout()
+
+        hbox0_v0 = QHBoxLayout()
+        lb_fname = QLabel("Vorname")
+        hbox0_v0.addWidget(lb_fname)
+        
+        hbox1_v0 = QHBoxLayout()
+        lb_lname = QLabel("Nachname")
+        hbox1_v0.addWidget(lb_lname)
+
+        hbox2_v0 = QHBoxLayout()
+        lb_email = QLabel("Email")
+        hbox2_v0.addWidget(lb_email)
+
+        hbox3_v0 = QHBoxLayout()
+        lb_username = QLabel("Benutzername")
+        hbox3_v0.addWidget(lb_username)
+
+        hbox4_v0 = QHBoxLayout()
+        self.lb_status = QLabel("a")
+        hbox4_v0.addWidget(self.lb_status)
+
+
+        vbox0.addLayout(hbox0_v0)
+        vbox0.addLayout(hbox1_v0)
+        vbox0.addLayout(hbox2_v0)
+        vbox0.addLayout(hbox3_v0)
+        vbox0.addStretch()
+        vbox0.addLayout(hbox4_v0)
+
+
+        vbox1 = QVBoxLayout()
+
+        hbox0_v1 = QHBoxLayout()
+        self.le_fname = QLineEdit()
+        hbox0_v1.addWidget(self.le_fname)
+
+        hbox1_v1 = QHBoxLayout()
+        self.le_lname = QLineEdit()
+        hbox1_v1.addWidget(self.le_lname)
+
+        hbox2_v1 = QHBoxLayout()
+        self.le_email = QLineEdit()
+        hbox2_v1.addWidget(self.le_email)
+        
+        hbox3_v1 = QHBoxLayout()
+        self.le_username = QLineEdit()
+        hbox3_v1.addWidget(self.le_username)
+
+        hbox4_v1 = QHBoxLayout()
+        self.btn_ok = QPushButton("OK")
+        self.btn_cancel = QPushButton("Abbrechen")
+        hbox4_v1.addStretch()
+        hbox4_v1.addWidget(self.btn_ok)
+        hbox4_v1.addWidget(self.btn_cancel)
+
+
+        vbox1.addLayout(hbox0_v1)
+        vbox1.addLayout(hbox1_v1)
+        vbox1.addLayout(hbox2_v1)
+        vbox1.addLayout(hbox3_v1)
+        vbox1.addLayout(hbox4_v1)
+
+        hbox_main.addLayout(vbox0)
+        hbox_main.addLayout(vbox1)
+
+        vbox_main.addLayout(hbox_header)
+        vbox_main.addStretch()
+        vbox_main.addLayout(hbox_main)
+        vbox_main.addStretch(2)
+
+        self.setLayout(vbox_main)
+
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    w = CreateAccountWidget()
+    w.show()
+    sys.exit(app.exec_())

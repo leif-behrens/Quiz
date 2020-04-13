@@ -28,14 +28,13 @@ class Server:
             self.port = config.get("serversettings").get("port")
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.bind((self.ip, self.port))
-            self.sock.listen(5)
 
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.sock.bind(("localhost", 50000))
-            self.sock.listen(5)
 
     def run(self):
+        self.sock.listen()
         while True:
             client, addr = self.sock.accept()                
             threading._start_new_thread(self._new_client_connection, (client, addr))
@@ -204,9 +203,6 @@ class Server:
             return access, False
         
         person._conn.close()
-
-
-
 
 
 if __name__ == "__main__":
