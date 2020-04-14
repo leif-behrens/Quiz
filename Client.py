@@ -310,31 +310,27 @@ class Client(QMainWindow):
                         print("Falsche Eingabe")
 
     def save_execute_config(self):
-        if os.path.exists("Config/clientsettings.json"):
-            try:
-                temp_config = {"serversettings": {},
-                               "usersettings": {},
-                               "generalsettings": {}}
+        try:
+            temp_config = {"serversettings": {},
+                            "usersettings": {}}
+            
+            temp_config["serversettings"]["ip"] = self.login_widget_main.le_ip.text()
+            temp_config["serversettings"]["port"] = int(self.login_widget_main.le_port.text())
+            temp_config["usersettings"]["username"] = self.login_widget_main.le_username.text()
+            temp_config["usersettings"]["password"] = self.login_widget_main.le_password.text()
+            
+            with open("Config/clientsettings.json", "w") as f:
+                json.dump(temp_config, f, indent=4)
                 
-                temp_config["serversettings"]["ip"] = self.login_widget_main.le_ip.text()
-                temp_config["serversettings"]["port"] = int(self.login_widget_main.le_port.text())
-                temp_config["usersettings"]["username"] = self.login_widget_main.le_username.text()
-                temp_config["usersettings"]["password"] = self.login_widget_main.le_password.text()
+            self.settings = temp_config
                 
-                with open("Config/clientsettings.json", "w") as f:
-                    json.dump(temp_config, f, indent=4)
-                    
-                self.settings = temp_config
-                    
-                self.connect_to_server()
+            self.connect_to_server()
+            
+            self.show_home()
                 
-                self.show_home()
-                    
-            except Exception as e:
-                self.settings = {}
-                print(e)
-        else:
+        except Exception as e:
             self.settings = {}
+            print(e)
 
     def _start_new_quiz(self):
         try:

@@ -195,7 +195,6 @@ class Server:
 
                     send(client, new_user)
 
-
             except Exception as e:
                 client.close()
                 print(e)

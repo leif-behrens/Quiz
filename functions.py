@@ -22,11 +22,10 @@ def recv(_socket, chunksize=32):
             return msg
         
         if new_msg:
-            msg_len = int(msg[:HEADER])            
+            msg_len = int(msg[:HEADER])
             new_msg = False
 
         full_msg += msg
 
         if len(full_msg) - HEADER == msg_len:
             return pickle.loads(full_msg[HEADER:])
-
