@@ -31,7 +31,7 @@ class Server:
 
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.sock.bind(("localhost", 50000))
+            self.sock.bind(("", 50000))
 
     def run(self):
         self.sock.listen()
