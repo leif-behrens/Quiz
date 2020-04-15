@@ -186,6 +186,26 @@ class QuizDatabase:
         """
 
         self._cur.execute(query)
+
+        query = """
+        CREATE TABLE IF NOT EXISTS deleted_quiz (
+            deleted_quiz_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            question TEXT,
+            wrong_answer_1 TEXT,
+            wrong_answer_2 TEXT,
+            wrong_answer_3 TEXT,
+            correct_answer TEXT,
+            category TEXT,
+            author TEXT,
+            editor TEXT,
+            timestamp_creation INTEGER,
+            timestamp_lastchange INTEGER,
+            old_primarykey INTEGER
+        )
+        """
+
+        self._cur.execute(query)
+
         self._conn.commit()
 
     def new_question(self, question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer, category):
@@ -238,25 +258,62 @@ class QuizDatabase:
             return False, e
 
     def delete_question(self, primarykey):
-        if self.permission:
-            query = f"""
-            DELETE FROM quiz WHERE quiz_id = ?
-            """
+        query = """
+        SELECT * FROM quiz WHERE quiz_id = ?
+        """
+        try:
+            self._cur.execute(query, (primarykey,))
 
-            try:
-                self._cur.execute(query, (primarykey))
-                self._conn.commit()
-                return True, ""
+            data = self._cur.fetchone()
             
-            except Exception as e:
-                return False, e
-    
-        self._conn.close()        
+            if data is None:
+                raise Exception("Zu löschendes Quiz existiert nicht")
+        
+        except Exception as e:
+            return False, e
+
+        query = """
+        INSERT INTO deleted_quiz (
+            old_primarykey,
+            question,
+            wrong_answer_1,
+            wrong_answer_2,
+            wrong_answer_3,
+            correct_answer,
+            category,
+            author,
+            editor,
+            timestamp_creation,
+            timestamp_lastchange            
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+
+        try:
+            self._cur.execute(query, (*data, ))
+        
+        except Exception as e:
+            return False, e
+
+
+        query = """
+        DELETE FROM quiz WHERE quiz_id = ?
+        """
+
+        try:
+            self._cur.execute(query, (primarykey,))
+            self._conn.commit()
+            return True, ""
+        
+        except Exception as e:
+            return False, e  
 
     def __del__(self):
         self._conn.close()
 
 
 if __name__ == "__main__":
-    person = PersonDatabase("Database/user.db")
+    quiz = QuizDatabase("Database/quiz.db", "admin")
+    a = quiz.delete_question(28)
+    print(a)
+
 

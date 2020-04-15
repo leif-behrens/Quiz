@@ -195,6 +195,18 @@ class Server:
 
                     send(client, new_user)
 
+                elif data == 10:
+                    send(client, "")
+                    username, pk = recv(client)
+
+                    quiz = QuizDatabase("Database/quiz.db", username)
+                    
+                    delete = quiz.delete_question(pk)
+
+                    send(client, delete)
+
+                    quiz._conn.close()
+
             except Exception as e:
                 client.close()
                 print(e)

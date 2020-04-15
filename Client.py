@@ -63,6 +63,10 @@ class Client(QMainWindow):
         self.answers = {}
         self.quiz_time_start = 0
 
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self._refresh)
+        self.timer.start(10000)
+
     def connect_to_server(self):
         if not self.connected:
             if self.settings:
@@ -309,6 +313,40 @@ class Client(QMainWindow):
                     else:
                         print("Falsche Eingabe")
 
+    def delete_question(self):
+        try:
+            send(self.client, 10)   # Code für Löschen
+            recv(self.client)   # Pseudo
+            send(self.client, (self.login_widget_main.le_username.text(), self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text()))     # Username und Primary Key
+            response = recv(self.client)   # Bestätigung, ob die Frage gelöscht wurde
+            
+            if response[0]:
+                self.home_widget_main.lb_status.setText("Frage gelöscht")
+                self.home_widget_main.lb_status.setStyleSheet("color: green;")
+            else:
+                self.home_widget_main.lb_status.setText(f"Frage konnte nicht gelöscht werden. Fehler: {response[1]}")
+                self.home_widget_main.lb_status.setStyleSheet("color: red;")
+
+            self.show_home()
+
+        except Exception as e:
+            self.connected = False
+            self.authenticated = False
+            self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+            self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+            
+            self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+            self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+
+            self.home_widget_main.lb_status.setText(f"Frage konnte nicht gelöscht werden.")
+            self.home_widget_main.lb_status.setStyleSheet("color: red;")
+
+            self.show_home()
+
+            self.client.close()
+            
+            print(e)
+
     def save_execute_config(self):
         try:
             temp_config = {"serversettings": {},
@@ -354,7 +392,8 @@ class Client(QMainWindow):
             self.questions = recv(self.client)
 
             if len(self.questions) != 15:
-                print("Nicht genügend Fragen vorhanden.")
+                self.home_widget_main.lb_status.setText("Nicht genügend Fragen vorhanden.")
+                self.home_widget_main.lb_status.setStyleSheet("color: red;")
                 self.show_home()
                 
             else:
@@ -509,6 +548,11 @@ class Client(QMainWindow):
             self.new_account_widget_main.lb_status.setText("Bitte alle Felder ausfüllen")
             self.new_account_widget_main.lb_status.setStyleSheet("color: red;")
 
+    def _refresh(self):
+        self.home_widget_main.lb_status.clear()
+        self.home_widget_main.lb_status.setStyleSheet("color: black;")
+
+
     def init_layouts(self):
         self.home_layout()
         self.new_quiz_layout_1()
@@ -603,6 +647,7 @@ class Client(QMainWindow):
                 
         self.edit_question_widget_2_main = EditQuestionWidget2(self.edit_question_widget_2)
         self.edit_question_widget_2_main.btn_save.clicked.connect(self.save_edit_question)
+        self.edit_question_widget_2_main.btn_delete.clicked.connect(self.delete_question)
         self.edit_question_widget_2_main.btn_cancel.clicked.connect(self.show_home)
 
         self.edit_question_widget_2.hide()

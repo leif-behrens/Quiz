@@ -64,9 +64,13 @@ class HomeWidget(QWidget):
         hbox6.addWidget(self.lb_server_status)
 
         hbox7 = QHBoxLayout()
+        self.lb_status = QLabel()
+        self.lb_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
+        
         self.lb_login_status = QLabel("Nicht angemeldet")
         self.lb_login_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
         self.lb_login_status.setStyleSheet("color: red")
+        hbox7.addWidget(self.lb_status)
         hbox7.addStretch()
         hbox7.addWidget(self.lb_login_status)
 
@@ -758,15 +762,22 @@ class EditQuestionWidget2(QWidget):
 
         hbox4 = QHBoxLayout()
 
+        self.btn_delete = QPushButton("Löschen")
+
+        hbox4.addWidget(self.btn_delete)
+
+
+        hbox5 = QHBoxLayout()
+
         self.btn_save = QPushButton("Speichern")
         self.btn_save.setFont(QFont("Times New Roman", 12, QFont.Cursive))
 
         self.btn_cancel = QPushButton("Abbrechen")
         self.btn_cancel.setFont(QFont("Times New Roman", 12, QFont.Cursive))
     	
-        hbox4.addStretch()
-        hbox4.addWidget(self.btn_save)
-        hbox4.addWidget(self.btn_cancel)
+        hbox5.addStretch()
+        hbox5.addWidget(self.btn_save)
+        hbox5.addWidget(self.btn_cancel)
 
         vbox.addLayout(hbox)
         vbox.addLayout(hbox0)
@@ -776,6 +787,8 @@ class EditQuestionWidget2(QWidget):
         vbox.addLayout(hbox3)
         vbox.addStretch()
         vbox.addLayout(hbox4)
+        vbox.addStretch()
+        vbox.addLayout(hbox5)
         
         self.parent.setLayout(vbox)
 
@@ -911,26 +924,32 @@ class CreateAccountWidget(QWidget):
         hbox0_v0 = QHBoxLayout()
         lb_fname = QLabel("Vorname")
         hbox0_v0.addWidget(lb_fname)
+        hbox0_v0.addStretch()
         
         hbox1_v0 = QHBoxLayout()
         lb_lname = QLabel("Nachname")
         hbox1_v0.addWidget(lb_lname)
+        hbox1_v0.addStretch()
 
         hbox2_v0 = QHBoxLayout()
         lb_email = QLabel("Email")
         hbox2_v0.addWidget(lb_email)
+        hbox2_v0.addStretch()
 
         hbox3_v0 = QHBoxLayout()
         lb_username = QLabel("Benutzername")
         hbox3_v0.addWidget(lb_username)
+        hbox3_v0.addStretch()
 
         hbox4_v0 = QHBoxLayout()
         lb_password = QLabel("Passwort")
         hbox4_v0.addWidget(lb_password)
+        hbox4_v0.addStretch()
 
         hbox5_v0 = QHBoxLayout()
         self.lb_status = QLabel()
         hbox5_v0.addWidget(self.lb_status)
+        hbox5_v0.addStretch()
 
 
         vbox0.addLayout(hbox0_v0)
