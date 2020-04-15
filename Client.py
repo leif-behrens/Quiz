@@ -31,7 +31,6 @@ class Client(QMainWindow):
         Path("./Database").mkdir(parents=True, exist_ok=True)
         Path("./Config").mkdir(parents=True, exist_ok=True)
         
-
         self.init_layouts()
 
         self.connected = False
@@ -66,6 +65,8 @@ class Client(QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._refresh)
         self.timer.start(10000)
+
+        self.show_home()
 
     def connect_to_server(self):
         if not self.connected:
@@ -131,7 +132,9 @@ class Client(QMainWindow):
                                 self.home_widget_main.lb_login_status.setStyleSheet("color: green")
                             else:
                                 self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
-                                self.home_widget_main.lb_login_status.setStyleSheet("color: red")          
+                                self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+                                self.home_widget_main.lb_status.setText("Anmeldung schlug fehl")
+                                self.home_widget_main.lb_status.setStyleSheet("color: red")
 
                         except Exception as e:
                             print(e)
@@ -197,9 +200,11 @@ class Client(QMainWindow):
                             response = recv(self.client)
                             
                             if response[0]:
-                                print("Frage erfolgreich gespeichert")
+                                self.home_widget_main.lb_status.setText("Frage erfolgreich gespeichert")
+                                self.home_widget_main.lb_status.setStyleSheet("color: green;")
                             else:
-                                print(f"Fehler ist aufgetreten: {response[1]}")
+                                self.home_widget_main.lb_status.setText(f"Fehler ist aufgetreten: {response[1]}")
+                                self.home_widget_main.lb_status.setStyleSheet("color: red;")
                         
                         except Exception as e:
                             self.connected = False
@@ -548,10 +553,135 @@ class Client(QMainWindow):
             self.new_account_widget_main.lb_status.setText("Bitte alle Felder ausfüllen")
             self.new_account_widget_main.lb_status.setStyleSheet("color: red;")
 
+    def _fill_edit_table(self):
+        self.edit_question_widget_1_main.tw_edit_question.clear()
+        self.edit_question_widget_1_main.tw_edit_question.setColumnCount(7)
+        self.edit_question_widget_1_main.tw_edit_question.setRowCount(0)
+
+        self.edit_question_widget_1_main.tw_edit_question.verticalHeader().hide()
+        self.edit_question_widget_1_main.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategorie", "Autor", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
+
+        header = self.edit_question_widget_1_main.tw_edit_question.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(5, QHeaderView.Stretch)
+        header.setSectionResizeMode(6, QHeaderView.Stretch)
+
+        try:
+            send(self.client, 4)    # Code um alle Fragen zu erhalten
+            recv(self.client)   # Pseudo
+            send(self.client, (self.login_widget_main.le_username.text(), self.edit_question_widget_1_main.cb_category.currentText()))    # Username und Kategorie
+            
+            questions = recv(self.client)
+
+            for d in questions:
+                row_pos = self.edit_question_widget_1_main.tw_edit_question.rowCount()
+                self.edit_question_widget_1_main.tw_edit_question.insertRow(row_pos)
+                self.edit_question_widget_1_main.tw_edit_question.setSelectionBehavior(QAbstractItemView.SelectRows)
+                self.edit_question_widget_1_main.tw_edit_question.setEditTriggers(QAbstractItemView.NoEditTriggers)
+
+                self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 0, QTableWidgetItem(str(d[0])))
+                self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 1, QTableWidgetItem(str(d[1])))
+                self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 2, QTableWidgetItem(str(d[2])))
+                self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 3, QTableWidgetItem(str(d[3])))
+                self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 4, QTableWidgetItem(str(d[4])))
+                self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 5, QTableWidgetItem(str(datetime.datetime.fromtimestamp(d[5]).strftime('%d.%m.%Y %H:%M:%S'))))
+                self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 6, QTableWidgetItem(str(datetime.datetime.fromtimestamp(d[6]).strftime('%d.%m.%Y %H:%M:%S'))))
+                                        
+        except Exception as e:
+            self.connected = False
+            self.authenticated = False
+            self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+            self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+            
+            self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+            self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+
+            self.finished_widget_main.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden, da die Verbindung zum Server unterbrochen ist.")
+            self.finished_widget_main.lb_database_entry.setStyleSheet("color: red;")
+
+            self.client.close()
+            
+            print(e)
+
     def _refresh(self):
         self.home_widget_main.lb_status.clear()
-        self.home_widget_main.lb_status.setStyleSheet("color: black;")
+        self.admin_panel_widget_main.lb_status.clear()
 
+    def edit_user(self):
+        try:
+            send(self.client, 12)   # Code um Username zu checken
+            recv(self.client)   # Pseudo
+            send(self.client, self.admin_panel_widget_main.le_user.text())
+            
+            response = recv(self.client)
+
+            if response is None:
+                self.admin_panel_widget_main.lb_status.setText("User existiert nicht.")
+                self.admin_panel_widget_main.lb_status.setStyleSheet("color: red;")
+            
+            else:
+                self.show_edit_user()
+
+            
+        except Exception as e:
+            self.connected = False
+            self.authenticated = False
+            self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+            self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+            
+            self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+            self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+            self.client.close()
+            
+            print(e)
+
+    def save_edit_user(self):
+        try:
+            send(self.client, 14)   # Code um geänderte Daten zu speichern
+            recv(self.client)   # Pseudo
+
+            sha256 = hashlib.sha256()
+            sha256.update(self.edit_user_widget_main.le_new_password.text().strip().encode())
+            
+            if self.edit_user_widget_main.cb_admin.currentText() == "Ja":
+                admin = "True"
+            else:
+                admin = False
+
+            data = (sha256.hexdigest(), self.edit_user_widget_main.le_fname.text(),
+                    self.edit_user_widget_main.le_lname.text(), 
+                    self.edit_user_widget_main.le_email.text(),
+                    admin, self.edit_user_widget_main.le_username.text())
+
+            send(self.client, data)
+            
+            response = recv(self.client)
+
+            if response[0]:
+                self.show_admin_panel()
+                self.admin_panel_widget_main.lb_status.setText("Änderungen wurden durchgeführt.")
+                self.admin_panel_widget_main.lb_status.setStyleSheet("color: green;")
+            else:
+                self.show_admin_panel()
+                self.admin_panel_widget_main.lb_status.setText(f"User konnte nicht bearbeitet werden. Fehler {response[1]}")
+                self.admin_panel_widget_main.lb_status.setStyleSheet("color: red;")
+
+            
+        except Exception as e:
+            self.connected = False
+            self.authenticated = False
+            self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+            self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+            
+            self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+            self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+            self.client.close()
+            
+            print(e)
 
     def init_layouts(self):
         self.home_layout()
@@ -564,6 +694,8 @@ class Client(QMainWindow):
         self.edit_question_layout_2()
         self.login_layout()
         self.new_account_layout()
+        self.admin_panel_layout()
+        self.edit_user_layout()
 
         self.show()
 
@@ -577,6 +709,9 @@ class Client(QMainWindow):
         self.home_widget_main.btn_new_question.clicked.connect(self.show_new_question)
         self.home_widget_main.btn_edit_delete_question.clicked.connect(self.show_edit_question_1)
         self.home_widget_main.btn_login.clicked.connect(self.show_login)
+        self.home_widget_main.btn_admin_panel.clicked.connect(self.show_admin_panel)
+
+        self.home_widget.hide()
 
     def new_quiz_layout_1(self):
         self.new_quiz_widget_1 = QWidget(self)
@@ -639,6 +774,7 @@ class Client(QMainWindow):
         self.edit_question_widget_1_main = EditQuestionWidget1(self.edit_question_widget_1)
         self.edit_question_widget_1_main.btn_home.clicked.connect(self.show_home)
         self.edit_question_widget_1_main.tw_edit_question.itemDoubleClicked.connect(self.show_edit_question_2)
+        self.edit_question_widget_1_main.cb_category.currentIndexChanged.connect(self._fill_edit_table)
 
         self.edit_question_widget_1.hide()
 
@@ -674,6 +810,25 @@ class Client(QMainWindow):
 
         self.new_account_widget.hide()
 
+    def admin_panel_layout(self):
+        self.admin_panel_widget = QWidget(self)
+
+        self.admin_panel_widget_main = AdminpanelWidget(self.admin_panel_widget)
+        self.admin_panel_widget_main.btn_ok.clicked.connect(self.edit_user)
+        self.admin_panel_widget_main.btn_home.clicked.connect(self.show_home)
+
+        self.new_account_widget.hide()
+    
+    def edit_user_layout(self):
+        self.edit_user_widget = QWidget(self)
+
+        self.edit_user_widget_main = EditUserWidget(self.edit_user_widget)
+        self.edit_user_widget_main.btn_home.clicked.connect(self.show_home)
+        self.edit_user_widget_main.btn_back.clicked.connect(self.show_admin_panel)
+        self.edit_user_widget_main.btn_save.clicked.connect(self.save_edit_user)
+
+        self.edit_user_widget.hide()
+
     def show_home(self):
         self.home_widget.hide()
         self.new_quiz_widget_1.hide()
@@ -685,8 +840,20 @@ class Client(QMainWindow):
         self.edit_question_widget_2.hide()
         self.login_widget.hide()
         self.new_account_widget.hide()
+        self.admin_panel_widget.hide()
+        self.edit_user_widget.hide()
         
         self.home_widget.show()
+
+        if not self.admin:
+            self.home_widget_main.btn_new_question.hide()
+            self.home_widget_main.btn_edit_delete_question.hide()
+            self.home_widget_main.btn_admin_panel.hide()
+
+        else:
+            self.home_widget_main.btn_new_question.show()
+            self.home_widget_main.btn_edit_delete_question.show()
+            self.home_widget_main.btn_admin_panel.show()
 
     def show_new_quiz_1(self):
         if self.connected:
@@ -701,6 +868,8 @@ class Client(QMainWindow):
                 self.edit_question_widget_2.hide()
                 self.login_widget.hide()
                 self.new_account_widget.hide()
+                self.admin_panel_widget.hide()
+                self.edit_user_widget.hide()
                 
                 self.new_quiz_widget_1.show()
 
@@ -716,7 +885,9 @@ class Client(QMainWindow):
                 self.edit_question_widget_1.hide()
                 self.edit_question_widget_2.hide()
                 self.login_widget.hide()
-                self.new_account_widget.hide()
+                self.new_account_widget.hide()                        
+                self.admin_panel_widget.hide()
+                self.edit_user_widget.hide()
 
                 self.new_quiz_widget_2.show()
 
@@ -745,6 +916,8 @@ class Client(QMainWindow):
         self.edit_question_widget_2.hide()
         self.login_widget.hide()
         self.new_account_widget.hide()
+        self.admin_panel_widget.hide()
+        self.edit_user_widget.hide()
         
         self.tab_result_main.show()
 
@@ -819,6 +992,8 @@ class Client(QMainWindow):
             self.edit_question_widget_2.hide()
             self.login_widget.hide()
             self.new_account_widget.hide()
+            self.admin_panel_widget.hide()
+            self.edit_user_widget.hide()
 
             self.highscore_widget.show()
             
@@ -837,8 +1012,18 @@ class Client(QMainWindow):
                 self.edit_question_widget_2.hide()
                 self.login_widget.hide()                        
                 self.new_account_widget.hide()
+                self.admin_panel_widget.hide()
+                self.edit_user_widget.hide()
 
                 self.new_question_widget.show()
+
+                self.new_question_widget_main.le_question.clear()
+                self.new_question_widget_main.le_wrong_answer_1.clear()
+                self.new_question_widget_main.le_wrong_answer_2.clear()
+                self.new_question_widget_main.le_wrong_answer_3.clear()
+                self.new_question_widget_main.le_correct_answer.clear()
+                self.new_question_widget_main.le_category.clear()
+
             else:
                 print("Fehlende Rechte")
 
@@ -855,46 +1040,22 @@ class Client(QMainWindow):
                 self.edit_question_widget_2.hide()
                 self.login_widget.hide()
                 self.new_account_widget.hide()
+                self.admin_panel_widget.hide()
+                self.edit_user_widget.hide()
 
                 self.edit_question_widget_1.show()
 
-                self.edit_question_widget_1_main.tw_edit_question.clear()
-                self.edit_question_widget_1_main.tw_edit_question.setColumnCount(7)
-                self.edit_question_widget_1_main.tw_edit_question.setRowCount(0)
-
-                self.edit_question_widget_1_main.tw_edit_question.verticalHeader().hide()
-                self.edit_question_widget_1_main.tw_edit_question.setHorizontalHeaderLabels(["Quiz-ID", "Frage", "Kategorie", "Autor", "Letzter Bearbeiter", "Erstellungsdatum", "Änderungsdatum"])
-
-                header = self.edit_question_widget_1_main.tw_edit_question.horizontalHeader()
-                header.setSectionResizeMode(0, QHeaderView.ResizeToContents)
-                header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-                header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-                header.setSectionResizeMode(3, QHeaderView.ResizeToContents)
-                header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
-                header.setSectionResizeMode(5, QHeaderView.Stretch)
-                header.setSectionResizeMode(6, QHeaderView.Stretch)
-
+                # Alle Kategorien erhalten
                 try:
-                    send(self.client, 4)    # Code um alle Fragen zu erhalten
+                    send(self.client, 11)   # Code um alle Kategorien bekommen
                     recv(self.client)   # Pseudo
-                    send(self.client, self.login_widget_main.le_username.text())
+                    send(self.client, self.login_widget_main.le_username.text())    # Username senden
+                    categories = recv(self.client)
+
+                    # Combobox füllen
+                    for category in categories:
+                        self.edit_question_widget_1_main.cb_category.addItem(category[0])
                     
-                    all_questions = recv(self.client)
-
-                    for d in all_questions:
-                        row_pos = self.edit_question_widget_1_main.tw_edit_question.rowCount()
-                        self.edit_question_widget_1_main.tw_edit_question.insertRow(row_pos)
-                        self.edit_question_widget_1_main.tw_edit_question.setSelectionBehavior(QAbstractItemView.SelectRows)
-                        self.edit_question_widget_1_main.tw_edit_question.setEditTriggers(QAbstractItemView.NoEditTriggers)
-
-                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 0, QTableWidgetItem(str(d[0])))
-                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 1, QTableWidgetItem(str(d[1])))
-                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 2, QTableWidgetItem(str(d[2])))
-                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 3, QTableWidgetItem(str(d[3])))
-                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 4, QTableWidgetItem(str(d[4])))
-                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 5, QTableWidgetItem(str(datetime.datetime.fromtimestamp(d[5]).strftime('%d.%m.%Y %H:%M:%S'))))
-                        self.edit_question_widget_1_main.tw_edit_question.setItem(row_pos, 6, QTableWidgetItem(str(datetime.datetime.fromtimestamp(d[6]).strftime('%d.%m.%Y %H:%M:%S'))))
-                                                
                 except Exception as e:
                     self.connected = False
                     self.authenticated = False
@@ -903,12 +1064,8 @@ class Client(QMainWindow):
                     
                     self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
                     self.home_widget_main.lb_login_status.setStyleSheet("color: red")
-
-                    self.finished_widget_main.lb_database_entry.setText("Datenbank-Eintrag konnte nicht erstellt werden, da die Verbindung zum Server unterbrochen ist.")
-                    self.finished_widget_main.lb_database_entry.setStyleSheet("color: red;")
-
                     self.client.close()
-                    
+
                     print(e)
 
             else:
@@ -927,6 +1084,8 @@ class Client(QMainWindow):
                 self.edit_question_widget_2.hide()
                 self.login_widget.hide()
                 self.new_account_widget.hide()
+                self.admin_panel_widget.hide()
+                self.edit_user_widget.hide()
 
                 self.edit_question_widget_2.show()
                 
@@ -957,6 +1116,8 @@ class Client(QMainWindow):
         self.edit_question_widget_2.hide()
         self.login_widget.hide()
         self.new_account_widget.hide()
+        self.admin_panel_widget.hide()
+        self.edit_user_widget.hide()
         
         self.login_widget.show()
 
@@ -971,6 +1132,8 @@ class Client(QMainWindow):
         self.edit_question_widget_2.hide()
         self.login_widget.hide()
         self.new_account_widget.hide()
+        self.admin_panel_widget.hide()
+        self.edit_user_widget.hide()
         
         self.new_account_widget.show()
 
@@ -980,6 +1143,72 @@ class Client(QMainWindow):
         self.new_account_widget_main.le_username.setStyleSheet("border: 1px solid black")
         self.new_account_widget_main.lb_status.clear()
         self.new_account_widget_main.lb_status.setStyleSheet("color: black;")
+
+    def show_admin_panel(self):
+        self.home_widget.hide()
+        self.new_quiz_widget_1.hide()
+        self.new_quiz_widget_2.hide()
+        self.tab_result_main.hide()
+        self.highscore_widget.hide()
+        self.new_question_widget.hide()
+        self.edit_question_widget_1.hide()
+        self.edit_question_widget_2.hide()
+        self.login_widget.hide()
+        self.new_account_widget.hide()
+        self.admin_panel_widget.hide()
+        self.edit_user_widget.hide()
+        
+        self.admin_panel_widget.show()
+        
+        self.admin_panel_widget_main.le_user.clear()
+
+    def show_edit_user(self):
+        self.home_widget.hide()
+        self.new_quiz_widget_1.hide()
+        self.new_quiz_widget_2.hide()
+        self.tab_result_main.hide()
+        self.highscore_widget.hide()
+        self.new_question_widget.hide()
+        self.edit_question_widget_1.hide()
+        self.edit_question_widget_2.hide()
+        self.login_widget.hide()
+        self.new_account_widget.hide()
+        self.admin_panel_widget.hide()
+        self.edit_user_widget.hide()
+        
+        self.edit_user_widget.show()
+
+        try:
+            send(self.client, 13)   # Code um alle Infos des Users zu bekommen
+            recv(self.client)   # Pseudo
+            send(self.client, self.admin_panel_widget_main.le_user.text())  # User
+            data = recv(self.client)
+
+            self.edit_user_widget_main.le_username.setText(data[0])
+            self.edit_user_widget_main.le_fname.setText(data[2])
+            self.edit_user_widget_main.le_lname.setText(data[3])
+            self.edit_user_widget_main.le_email.setText(data[4])
+
+            
+            if eval(data[5]):
+                self.edit_user_widget_main.cb_admin.setCurrentText("Ja")
+            else:
+                self.edit_user_widget_main.cb_admin.setCurrentText("Nein")
+                
+
+
+        except Exception as e:
+            self.connected = False
+            self.authenticated = False
+            self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+            self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+            
+            self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+            self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+            self.client.close()
+            
+            print(e)
+
 
     def resizeEvent(self, event):
         self.width = self.frameGeometry().width()
@@ -995,6 +1224,8 @@ class Client(QMainWindow):
         self.edit_question_widget_2.resize(self.width, self.height-25)
         self.login_widget.resize(self.width, self.height-25)
         self.new_account_widget.resize(self.width, self.height-25)
+        self.admin_panel_widget.resize(self.width, self.height-25)
+        self.edit_user_widget.resize(self.width, self.height-25)
 
 
 if __name__ == "__main__":

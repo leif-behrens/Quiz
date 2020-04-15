@@ -99,18 +99,20 @@ class Server:
                     quiz._conn.close()
 
                 elif data == 4:
-                    # Alle Fragen erhalten
+                    # Alle Fragen einer bestimmten Kategorie erhalten
                     send(client, "")
-                    user = recv(client) # Username empfangen
+                    user, category = recv(client) # Username empfangen
 
                     quiz = QuizDatabase("Database/quiz.db", user)
                     query = """
                     SELECT quiz_id, question, category, author, editor, timestamp_creation, timestamp_lastchange
-                    FROM quiz ORDER BY quiz_id ASC
+                    FROM quiz WHERE category = ?
+                    ORDER BY quiz_id ASC
                     """
-                    quiz._cur.execute(query)
 
-                    send(client, quiz._cur.fetchall()) # Sende alle Fragen an Client
+                    quiz._cur.execute(query, (category,))
+
+                    send(client, quiz._cur.fetchall()) # Sende Fragen an Client
                 
                 elif data == 5:
                     # Login                    
@@ -206,6 +208,99 @@ class Server:
                     send(client, delete)
 
                     quiz._conn.close()
+
+                elif data == 11:
+                    send(client, "")
+                    username = recv(client)
+
+                    quiz = QuizDatabase("Database/quiz.db", username)
+                    
+                    query = """
+                    SELECT DISTINCT category FROM quiz
+                    """
+
+                    quiz._cur.execute(query)
+                    
+                    data = quiz._cur.fetchall()
+                    send(client, data)
+
+                    quiz._conn.close()
+
+                elif data == 12:
+                    # Check ob User existiert
+                    send(client, "")
+                    username = recv(client)
+                    person = PersonDatabase("Database/user.db")
+                    
+                    query = """
+                    SELECT username FROM user WHERE username = ?
+                    """
+
+                    person._cur.execute(query, (username,))
+
+                    send(client, person._cur.fetchone())
+
+                    person._conn.close()
+
+                elif data == 13:
+                    # Alle Infos des Users
+                    send(client, "")
+                    user = recv(client)
+
+                    person = PersonDatabase("Database/user.db")
+                    person._cur.execute("SELECT * FROM user WHERE username = ?", (user,))
+                    data = person._cur.fetchone()
+
+                    send(client, data)
+
+                    person._conn.close()
+                
+                elif data == 14:
+                    # Editierte Userdaten speichern
+                    send(client, "")
+                    data = recv(client) # Erhalte Tupel (password, f_name, l_name, email, admin, username)
+                    
+                    
+                    person = PersonDatabase("Database/user.db")
+                    
+                    try:
+                        # Wenn kein neues Passwort gesetzt wird, wird dieses auch nicht upgedatet
+                        # Der Hash steht für eine leere Zeichenkette
+                        if data[0] == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855": 
+                            query = """
+                            UPDATE user 
+                            SET
+                                f_name = ?, 
+                                l_name = ?, 
+                                email = ?, 
+                                admin = ?
+                            WHERE username = ?
+                            """
+
+                            person._cur.execute(query, data[1:])
+                        
+                        else:
+                            query = """
+                            UPDATE user 
+                            SET
+                                password = ?, 
+                                f_name = ?, 
+                                l_name = ?, 
+                                email = ?, 
+                                admin = ?
+                            WHERE username = ?
+                            """
+
+                            person._cur.execute(query, data)
+                        
+                        person._conn.commit()
+                        send(client, (True, ""))
+
+                    except Exception as e:
+                        send(client, (False, e))
+                    
+                    finally:                        
+                        person._conn.close()
 
             except Exception as e:
                 client.close()

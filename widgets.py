@@ -57,22 +57,28 @@ class HomeWidget(QWidget):
         hbox5.addStretch()
 
         hbox6 = QHBoxLayout()
+        self.btn_admin_panel = QPushButton("Adminpanel")
+        self.btn_admin_panel.setFont(QFont("Times New Roman", 25, QFont.Cursive))
+        hbox6.addWidget(self.btn_admin_panel)
+        hbox6.addStretch()
+
+        hbox7 = QHBoxLayout()
         self.lb_server_status = QLabel("Zurzeit mit keinem Server verbunden")
         self.lb_server_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
         self.lb_server_status.setStyleSheet("color: red")
-        hbox6.addStretch()
-        hbox6.addWidget(self.lb_server_status)
+        hbox7.addStretch()
+        hbox7.addWidget(self.lb_server_status)
 
-        hbox7 = QHBoxLayout()
+        hbox8 = QHBoxLayout()
         self.lb_status = QLabel()
         self.lb_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
         
         self.lb_login_status = QLabel("Nicht angemeldet")
         self.lb_login_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
         self.lb_login_status.setStyleSheet("color: red")
-        hbox7.addWidget(self.lb_status)
-        hbox7.addStretch()
-        hbox7.addWidget(self.lb_login_status)
+        hbox8.addWidget(self.lb_status)
+        hbox8.addStretch()
+        hbox8.addWidget(self.lb_login_status)
 
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox_space)
@@ -81,9 +87,10 @@ class HomeWidget(QWidget):
         vbox.addLayout(hbox3)
         vbox.addLayout(hbox4)
         vbox.addLayout(hbox5)
-        vbox.addStretch()
         vbox.addLayout(hbox6)
+        vbox.addStretch()
         vbox.addLayout(hbox7)
+        vbox.addLayout(hbox8)
 
         self.parent.setLayout(vbox)
 
@@ -639,8 +646,14 @@ class EditQuestionWidget1(QWidget):
 
         hbox0.addWidget(lb_edit_delete_question)
 
-
         hbox1 = QHBoxLayout()
+        lb_category = QLabel("Kategorie")
+        self.cb_category = QComboBox()
+        hbox1.addWidget(lb_category)
+        hbox1.addWidget(self.cb_category)
+        hbox1.addStretch()
+
+        hbox2 = QHBoxLayout()
 
         self.tw_edit_question = QTableWidget()
         self.tw_edit_question.setColumnCount(7)
@@ -656,7 +669,7 @@ class EditQuestionWidget1(QWidget):
         header.setSectionResizeMode(5, QHeaderView.Stretch)
         header.setSectionResizeMode(6, QHeaderView.Stretch)
 
-        hbox1.addWidget(self.tw_edit_question)
+        hbox2.addWidget(self.tw_edit_question)
 
 
         hbox = QHBoxLayout()
@@ -666,6 +679,7 @@ class EditQuestionWidget1(QWidget):
 
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
         vbox.addLayout(hbox)
 
         self.parent.setLayout(vbox)
@@ -1010,6 +1024,215 @@ class CreateAccountWidget(QWidget):
 
         self.parent.setLayout(vbox_main)
 
+
+class AdminpanelWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+
+        lb_adminpanel = QLabel("Adminpanel")
+        lb_adminpanel.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_adminpanel.setAlignment(Qt.AlignCenter)
+        hbox0.addWidget(lb_adminpanel)
+
+        hbox_space0 = QHBoxLayout()
+        hbox_space0.addWidget(QLabel())
+
+        hbox1 = QHBoxLayout()
+        lb_user = QLabel("Username")
+        self.le_user = QLineEdit()
+        self.btn_ok = QPushButton("Ok")
+        hbox1.addWidget(lb_user)
+        hbox1.addWidget(self.le_user)
+        hbox1.addWidget(self.btn_ok)
+        hbox1.addStretch()
+
+
+        hbox2 = QHBoxLayout()
+        self.btn_complaining_questions = QPushButton("Beanstandete Fragen")
+        hbox2.addWidget(self.btn_complaining_questions)
+        hbox2.addStretch()
+
+
+        hbox = QHBoxLayout()
+        self.lb_status = QLabel()
+        self.btn_home = QPushButton("Home")
+        hbox.addWidget(self.lb_status)
+        hbox.addStretch()
+        hbox.addWidget(self.btn_home)       
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space0)
+        vbox.addLayout(hbox1)       
+        vbox.addLayout(hbox2)       
+        vbox.addStretch()
+        vbox.addLayout(hbox)
+
+
+        self.parent.setLayout(vbox)
+
+
+class EditUserWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+        
+        hbox0 = QHBoxLayout()
+
+        lb_edit_user = QLabel("Benutzer bearbeiten")
+        lb_edit_user.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_edit_user.setAlignment(Qt.AlignCenter)
+        hbox0.addWidget(lb_edit_user)
+
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+
+        
+        hbox1 = QHBoxLayout()
+        lb_username = QLabel("Username")
+        self.le_username = QLineEdit()
+        self.le_username.setDisabled(True)
+        hbox1.addWidget(lb_username)
+        hbox1.addWidget(self.le_username)
+        hbox1.addStretch()
+
+        hbox2 = QHBoxLayout()
+        lb_email = QLabel("Email")
+        self.le_email = QLineEdit()
+        self.le_email.setDisabled(True)
+        hbox2.addWidget(lb_email)
+        hbox2.addWidget(self.le_email)
+        hbox2.addStretch()
+
+        hbox3 = QHBoxLayout()
+        lb_fname = QLabel("Vorname")
+        self.le_fname = QLineEdit()
+        self.le_fname.setDisabled(True)
+        hbox3.addWidget(lb_fname)
+        hbox3.addWidget(self.le_fname)
+        hbox3.addStretch()
+
+        hbox4 = QHBoxLayout()
+        lb_lname = QLabel("Nachname")
+        self.le_lname = QLineEdit()
+        self.le_lname.setDisabled(True)
+        hbox4.addWidget(lb_lname)
+        hbox4.addWidget(self.le_lname)
+        hbox4.addStretch()
+
+        hbox5 = QHBoxLayout()
+        lb_password_reset = QLabel("Neues Passwort")
+        self.le_new_password = QLineEdit()
+        self.le_new_password.setDisabled(True)
+        hbox5.addWidget(lb_password_reset)
+        hbox5.addWidget(self.le_new_password)
+        hbox5.addStretch()
+
+        hbox6 = QHBoxLayout()
+        lb_admin = QLabel("Admin")
+        self.cb_admin = QComboBox()
+        self.cb_admin.addItems(["Ja", "Nein"])
+        self.cb_admin.setDisabled(True)
+        hbox6.addWidget(lb_admin)
+        hbox6.addWidget(self.cb_admin)
+        hbox6.addStretch()
+
+        hbox7 = QHBoxLayout()
+        self.btn_save = QPushButton("Speichern")
+        self.btn_edit = QPushButton("Bearbeiten aktivieren")
+        self.btn_edit.clicked.connect(self.enable_disable_edit)
+        hbox7.addWidget(self.btn_save)
+        hbox7.addWidget(self.btn_edit)
+        hbox7.addStretch()
+
+        hbox = QHBoxLayout()
+        self.btn_home = QPushButton("Home")
+        self.btn_back = QPushButton("Zurück")
+        hbox.addStretch()
+        hbox.addWidget(self.btn_home)
+        hbox.addWidget(self.btn_back)
+        
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox3)
+        vbox.addLayout(hbox4)
+        vbox.addLayout(hbox5)
+        vbox.addLayout(hbox6)
+        vbox.addLayout(hbox7)
+        vbox.addStretch()
+        vbox.addLayout(hbox)
+
+        self.parent.setLayout(vbox)
+
+    def enable_disable_edit(self):
+        if self.btn_edit.text() == "Bearbeiten aktivieren":
+            self.btn_edit.setText("Bearbeiten deaktivieren")
+            self.le_email.setDisabled(False)
+            self.le_fname.setDisabled(False)
+            self.le_lname.setDisabled(False)
+            self.le_new_password.setDisabled(False)
+            self.cb_admin.setDisabled(False)
+        else:
+            self.btn_edit.setText("Bearbeiten aktivieren")
+            self.le_email.setDisabled(True)
+            self.le_fname.setDisabled(True)
+            self.le_lname.setDisabled(True)
+            self.le_new_password.setDisabled(True)
+            self.cb_admin.setDisabled(True)
+
+class ComplainingQuestionsWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout():
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+        lb_complained_questions = QLabel("Beanstandete Fragen")
+        lb_complained_questions.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_complained_questions.setAlignment(Qt.AlignCenter)
+        hbox0.addWidget(lb_complained_questions)
+        
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+
+        hbox1 = QHBoxLayout()
+        # self.tw_
+
+        
+        hbox = QHBoxLayout()
+        self.btn_home = QPushButton("Home")
+        self.btn_back = QPushButton("Zurück")
+        hbox.addStretch()
+        hbox.addWidget(self.btn_home)
+        hbox.addWidget(self.btn_back)
+
+
+        vbox.addStretch()
+        vbox.addWidget(hbox)
+
+        self.parent.setLayout(vbox)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

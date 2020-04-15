@@ -307,6 +307,7 @@ class QuizDatabase:
         except Exception as e:
             return False, e  
 
+
     def __del__(self):
         self._conn.close()
 
