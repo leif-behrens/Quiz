@@ -15,8 +15,6 @@ from database import *
 from functions import *
 
 
-HEADER = 64
-
 class Server:
     def __init__(self):
         
@@ -55,7 +53,7 @@ class Server:
                     client.close()
                     break
 
-                if data == 1:
+                elif data == 1:
                     # Neues Quiz
                     send(client, "")
 
@@ -301,6 +299,18 @@ class Server:
                     
                     finally:                        
                         person._conn.close()
+
+                elif data == 15:
+                    # Beanstandete Frage
+                    send(client, "")
+
+                    data = recv(client)
+
+                    quiz = QuizDatabase("Database/quiz.db", data[-1])
+                    insert = quiz.new_complain(*data)
+
+                    send(client, insert)
+                    quiz._conn.close()
 
             except Exception as e:
                 client.close()

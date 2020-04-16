@@ -36,6 +36,7 @@ class Client(QMainWindow):
         self.connected = False
         self.authenticated = False
         self.admin = False
+        
 
         if os.path.exists("Config/clientsettings.json"):
             with open("Config/clientsettings.json") as f:
@@ -65,7 +66,7 @@ class Client(QMainWindow):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._refresh)
         self.timer.start(10000)
-
+        
         self.show_home()
 
     def connect_to_server(self):
@@ -104,43 +105,42 @@ class Client(QMainWindow):
  
     def authentication(self):
         if self.connected:
-            if not self.authenticated:
-                if self.settings:
+            if self.settings:
+                try:
+                    # Code für Login
+                    send(self.client, 5)
+
+                    sha256 = hashlib.sha256()
+                    sha256.update(self.settings.get("usersettings").get("password").encode())
+
+                    credentials = [self.settings.get("usersettings").get("username"), sha256.hexdigest()]
+
+                    # Pseudo
+                    recv(self.client)
+
                     try:
-                        # Code für Login
-                        send(self.client, 5)
 
-                        sha256 = hashlib.sha256()
-                        sha256.update(self.settings.get("usersettings").get("password").encode())
+                        send(self.client, credentials)
 
-                        credentials = [self.settings.get("usersettings").get("username"), sha256.hexdigest()]
-
-                        # Pseudo
-                        recv(self.client)
-
-                        try:
-
-                            send(self.client, credentials)
-
-                            # access
-                            response = recv(self.client)
-                            self.authenticated = response[0]
-                            self.admin = response[1]
-                            
-                            if self.authenticated:
-                                self.home_widget_main.lb_login_status.setText(f"Angemeldet als '{self.settings.get('usersettings').get('username')}'")
-                                self.home_widget_main.lb_login_status.setStyleSheet("color: green")
-                            else:
-                                self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
-                                self.home_widget_main.lb_login_status.setStyleSheet("color: red")
-                                self.home_widget_main.lb_status.setText("Anmeldung schlug fehl")
-                                self.home_widget_main.lb_status.setStyleSheet("color: red")
-
-                        except Exception as e:
-                            print(e)
+                        # access
+                        response = recv(self.client)
+                        self.authenticated = response[0]
+                        self.admin = response[1]
+                        
+                        if self.authenticated:
+                            self.home_widget_main.lb_login_status.setText(f"Angemeldet als '{self.settings.get('usersettings').get('username')}'")
+                            self.home_widget_main.lb_login_status.setStyleSheet("color: green")
+                        else:
+                            self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+                            self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+                            self.home_widget_main.lb_status.setText("Anmeldung schlug fehl")
+                            self.home_widget_main.lb_status.setStyleSheet("color: red")
 
                     except Exception as e:
                         print(e)
+
+                except Exception as e:
+                    print(e)
 
     def save_new_question(self):
         if self.connected:
@@ -353,27 +353,24 @@ class Client(QMainWindow):
             print(e)
 
     def save_execute_config(self):
-        try:
-            temp_config = {"serversettings": {},
-                            "usersettings": {}}
+        temp_config = {"serversettings": {},
+                        "usersettings": {}}
+        
+        temp_config["serversettings"]["ip"] = self.login_widget_main.le_ip.text()
+        temp_config["serversettings"]["port"] = int(self.login_widget_main.le_port.text())
+        temp_config["usersettings"]["username"] = self.login_widget_main.le_username.text()
+        temp_config["usersettings"]["password"] = self.login_widget_main.le_password.text()
+        
+        Path("./Config").mkdir(parents=True, exist_ok=True)
+
+        with open("Config/clientsettings.json", "w") as f:
+            json.dump(temp_config, f, indent=4)
             
-            temp_config["serversettings"]["ip"] = self.login_widget_main.le_ip.text()
-            temp_config["serversettings"]["port"] = int(self.login_widget_main.le_port.text())
-            temp_config["usersettings"]["username"] = self.login_widget_main.le_username.text()
-            temp_config["usersettings"]["password"] = self.login_widget_main.le_password.text()
+        self.settings = temp_config
             
-            with open("Config/clientsettings.json", "w") as f:
-                json.dump(temp_config, f, indent=4)
-                
-            self.settings = temp_config
-                
-            self.connect_to_server()
-            
-            self.show_home()
-                
-        except Exception as e:
-            self.settings = {}
-            print(e)
+        self.connect_to_server()
+        
+        self.show_home()
 
     def _start_new_quiz(self):
         try:
@@ -396,14 +393,14 @@ class Client(QMainWindow):
             # category, author, editor, timestamp_creation, timestamp_lastchange)
             self.questions = recv(self.client)
 
-            if len(self.questions) != 15:
+            if len(self.questions) == 15:                
+                self.show_new_quiz_2()
+
+            else:
                 self.home_widget_main.lb_status.setText("Nicht genügend Fragen vorhanden.")
                 self.home_widget_main.lb_status.setStyleSheet("color: red;")
                 self.show_home()
                 
-            else:
-                self.show_new_quiz_2()
-
             
         except Exception as e:
             self.connected = False
@@ -696,6 +693,7 @@ class Client(QMainWindow):
         self.new_account_layout()
         self.admin_panel_layout()
         self.edit_user_layout()
+        self.complaining_questions_layout()
 
         self.show()
 
@@ -816,6 +814,7 @@ class Client(QMainWindow):
         self.admin_panel_widget_main = AdminpanelWidget(self.admin_panel_widget)
         self.admin_panel_widget_main.btn_ok.clicked.connect(self.edit_user)
         self.admin_panel_widget_main.btn_home.clicked.connect(self.show_home)
+        self.admin_panel_widget_main.btn_complaining_questions.clicked.connect(self.show_complaining_questions)
 
         self.new_account_widget.hide()
     
@@ -828,6 +827,15 @@ class Client(QMainWindow):
         self.edit_user_widget_main.btn_save.clicked.connect(self.save_edit_user)
 
         self.edit_user_widget.hide()
+
+    def complaining_questions_layout(self):
+        self.complaining_questions_widget = QWidget(self)
+
+        self.complaining_questions_widget_main = ComplainingQuestionsWidget(self.complaining_questions_widget)
+        self.complaining_questions_widget_main.btn_home.clicked.connect(self.show_home)
+        self.complaining_questions_widget_main.btn_back.clicked.connect(self.show_admin_panel)
+
+        self.complaining_questions_widget.hide()
 
     def show_home(self):
         self.home_widget.hide()
@@ -842,6 +850,7 @@ class Client(QMainWindow):
         self.new_account_widget.hide()
         self.admin_panel_widget.hide()
         self.edit_user_widget.hide()
+        self.complaining_questions_widget.hide()
         
         self.home_widget.show()
 
@@ -870,6 +879,7 @@ class Client(QMainWindow):
                 self.new_account_widget.hide()
                 self.admin_panel_widget.hide()
                 self.edit_user_widget.hide()
+                self.complaining_questions_widget.hide()
                 
                 self.new_quiz_widget_1.show()
 
@@ -888,6 +898,7 @@ class Client(QMainWindow):
                 self.new_account_widget.hide()                        
                 self.admin_panel_widget.hide()
                 self.edit_user_widget.hide()
+                self.complaining_questions_widget.hide()
 
                 self.new_quiz_widget_2.show()
 
@@ -918,6 +929,7 @@ class Client(QMainWindow):
         self.new_account_widget.hide()
         self.admin_panel_widget.hide()
         self.edit_user_widget.hide()
+        self.complaining_questions_widget.hide()
         
         self.tab_result_main.show()
 
@@ -932,9 +944,8 @@ class Client(QMainWindow):
         
         # Tabs für jedes Frage wird erstellt
         for i in range(15):
-            new_tab = ResultWidget(f"Frage {i+1}", self.tab_result_main)
-            new_tab.fill_layout(self.questions[i], self.answers[i])
-        
+            new_tab = ResultWidget(f"Frage {i+1}", self.questions[i], self.client, self.tab_result_main)
+            new_tab.fill_layout(self.answers[i])
 
         # Daten an Server senden, die dann in die Datenbank geschrieben wird
         try:
@@ -994,6 +1005,7 @@ class Client(QMainWindow):
             self.new_account_widget.hide()
             self.admin_panel_widget.hide()
             self.edit_user_widget.hide()
+            self.complaining_questions_widget.hide()
 
             self.highscore_widget.show()
             
@@ -1014,6 +1026,7 @@ class Client(QMainWindow):
                 self.new_account_widget.hide()
                 self.admin_panel_widget.hide()
                 self.edit_user_widget.hide()
+                self.complaining_questions_widget.hide()
 
                 self.new_question_widget.show()
 
@@ -1042,6 +1055,7 @@ class Client(QMainWindow):
                 self.new_account_widget.hide()
                 self.admin_panel_widget.hide()
                 self.edit_user_widget.hide()
+                self.complaining_questions_widget.hide()
 
                 self.edit_question_widget_1.show()
 
@@ -1051,6 +1065,8 @@ class Client(QMainWindow):
                     recv(self.client)   # Pseudo
                     send(self.client, self.login_widget_main.le_username.text())    # Username senden
                     categories = recv(self.client)
+
+                    self.edit_question_widget_1_main.cb_category.clear()
 
                     # Combobox füllen
                     for category in categories:
@@ -1086,6 +1102,7 @@ class Client(QMainWindow):
                 self.new_account_widget.hide()
                 self.admin_panel_widget.hide()
                 self.edit_user_widget.hide()
+                self.complaining_questions_widget.hide()
 
                 self.edit_question_widget_2.show()
                 
@@ -1118,6 +1135,7 @@ class Client(QMainWindow):
         self.new_account_widget.hide()
         self.admin_panel_widget.hide()
         self.edit_user_widget.hide()
+        self.complaining_questions_widget.hide()
         
         self.login_widget.show()
 
@@ -1134,6 +1152,7 @@ class Client(QMainWindow):
         self.new_account_widget.hide()
         self.admin_panel_widget.hide()
         self.edit_user_widget.hide()
+        self.complaining_questions_widget.hide()
         
         self.new_account_widget.show()
 
@@ -1157,6 +1176,7 @@ class Client(QMainWindow):
         self.new_account_widget.hide()
         self.admin_panel_widget.hide()
         self.edit_user_widget.hide()
+        self.complaining_questions_widget.hide()
         
         self.admin_panel_widget.show()
         
@@ -1175,6 +1195,7 @@ class Client(QMainWindow):
         self.new_account_widget.hide()
         self.admin_panel_widget.hide()
         self.edit_user_widget.hide()
+        self.complaining_questions_widget.hide()
         
         self.edit_user_widget.show()
 
@@ -1209,6 +1230,22 @@ class Client(QMainWindow):
             
             print(e)
 
+    def show_complaining_questions(self):
+        self.home_widget.hide()
+        self.new_quiz_widget_1.hide()
+        self.new_quiz_widget_2.hide()
+        self.tab_result_main.hide()
+        self.highscore_widget.hide()
+        self.new_question_widget.hide()
+        self.edit_question_widget_1.hide()
+        self.edit_question_widget_2.hide()
+        self.login_widget.hide()
+        self.new_account_widget.hide()
+        self.admin_panel_widget.hide()
+        self.edit_user_widget.hide()
+        self.complaining_questions_widget.hide()
+        
+        self.complaining_questions_widget.show()
 
     def resizeEvent(self, event):
         self.width = self.frameGeometry().width()
@@ -1226,6 +1263,7 @@ class Client(QMainWindow):
         self.new_account_widget.resize(self.width, self.height-25)
         self.admin_panel_widget.resize(self.width, self.height-25)
         self.edit_user_widget.resize(self.width, self.height-25)
+        self.complaining_questions_widget.resize(self.width, self.height-25)
 
 
 if __name__ == "__main__":

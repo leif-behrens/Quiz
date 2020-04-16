@@ -6,6 +6,7 @@ class PersonDatabase:
     def __init__(self, database, admin=False):
         self._conn = sqlite3.connect(database)
         self._cur = self._conn.cursor()
+        
 
         self.admin = admin
 
@@ -19,6 +20,7 @@ class PersonDatabase:
             admin TEXT
         )
         """
+        
 
         self._cur.execute(query)
 
@@ -206,10 +208,23 @@ class QuizDatabase:
 
         self._cur.execute(query)
 
+        query = """
+        CREATE TABLE IF NOT EXISTS complained_questions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            quiz_id INTEGER,
+            comment TEXT,
+            suggested_answer TEXT,
+            username TEXT,
+            timestamp INTEGER,
+            FOREIGN KEY(quiz_id) REFERENCES quiz(quiz_id)
+        )
+        """
+
+        self._cur.execute(query)
+
         self._conn.commit()
 
     def new_question(self, question, wrong_answer_1, wrong_answer_2, wrong_answer_3, correct_answer, category):
-
         query = """
         INSERT INTO quiz (
             question,
@@ -306,6 +321,26 @@ class QuizDatabase:
         
         except Exception as e:
             return False, e  
+
+    def new_complain(self, quiz_id, comment, suggested_answer, username):
+        query = """
+        INSERT INTO complained_questions (
+            quiz_id,
+            comment,
+            suggested_answer,
+            username,
+            timestamp
+        ) VALUES (?, ?, ?, ?, ?)
+        """
+
+        try:
+            self._cur.execute(query, (quiz_id, comment, suggested_answer, username, int(time.time())))
+            self._conn.commit()
+
+            return True, ""
+        
+        except Exception as e:
+            return False, e
 
 
     def __del__(self):

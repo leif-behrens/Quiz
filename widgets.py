@@ -5,6 +5,8 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
+from functions import *
+
 
 class HomeWidget(QWidget):
     def __init__(self, parent=None):
@@ -246,13 +248,15 @@ class NewQuizWidget2(QWidget):
 
 
 class ResultWidget(QWidget):
-    def __init__(self, tab_name, parent=None):
+    def __init__(self, tab_name, question, client, parent=None):
         """
         Neuer Tab fürs Tabwidget (parent)
         """
         super().__init__()
         
         self.tab_name = tab_name
+        self.question = question
+        self.client = client
         self.parent = parent
 
         self.init_layout()
@@ -319,16 +323,23 @@ class ResultWidget(QWidget):
 
         self.lb_author_plus_date = QLabel()
         self.lb_author_plus_date.setFont(QFont("Times New Roman", 8, QFont.Cursive))
+        self.btn_complain_question = QPushButton("Frage beanstanden")
+        self.btn_complain_question.clicked.connect(self.complain_question)
 
         hbox5.addWidget(self.lb_author_plus_date)
+        hbox5.addStretch()
+        hbox5.addWidget(self.btn_complain_question)
 
 
         hbox6 = QHBoxLayout()
 
         self.lb_last_editor_plus_date = QLabel()
         self.lb_last_editor_plus_date.setFont(QFont("Times New Roman", 8, QFont.Cursive))
+        self.lb_status = QLabel()
 
         hbox6.addWidget(self.lb_last_editor_plus_date)
+        hbox6.addStretch()
+        hbox6.addWidget(self.lb_status)
 
         
         vbox.addLayout(hbox0)
@@ -341,35 +352,161 @@ class ResultWidget(QWidget):
 
         self.setLayout(vbox)
 
-    def fill_layout(self, question, answer):
-        self.te_question.insertPlainText(question[1])
+    def fill_layout(self, answer):
+        self.te_question.insertPlainText(self.question[1])
 
-        self.lb_category.setText(f"Kategorie: {question[6]}")
+        self.lb_category.setText(f"Kategorie: {self.question[6]}")
 
         # Erste Antwort ist die Richtige
-        self.te_answer_1.insertPlainText(question[5])
-        #self.te_answer_1.setStyleSheet("background-color: rgb(153, 255, 153);")
-        if question[5] == answer:
+        self.te_answer_1.insertPlainText(self.question[5])
+
+        if self.question[5] == answer:
             self.te_answer_1.setStyleSheet("border: 3px solid green;background-color: rgb(153, 255, 153);")
         else:
             self.te_answer_1.setStyleSheet("border: 3px solid green;")
         
-        self.te_answer_2.insertPlainText(question[2])
-        self.te_answer_3.insertPlainText(question[3])
-        self.te_answer_4.insertPlainText(question[4])
+        self.te_answer_2.insertPlainText(self.question[2])
+        self.te_answer_3.insertPlainText(self.question[3])
+        self.te_answer_4.insertPlainText(self.question[4])
 
         
-        if question.index(answer) == 2:
+        if self.question.index(answer) == 2:
             self.te_answer_2.setStyleSheet("background-color: rgb(255, 153, 153);")
 
-        if question.index(answer) == 3:
+        if self.question.index(answer) == 3:
             self.te_answer_3.setStyleSheet("background-color: rgb(255, 153, 153);")
 
-        if question.index(answer) == 4:
+        if self.question.index(answer) == 4:
             self.te_answer_4.setStyleSheet("background-color: rgb(255, 153, 153);")
 
-        self.lb_author_plus_date.setText(f"Frage erstellt am: {str(datetime.datetime.fromtimestamp(question[9]).strftime('%d.%m.%Y %H:%M:%S'))} von {question[7]}")
-        self.lb_last_editor_plus_date.setText(f"Frage zuletzt bearbeitet am: {str(datetime.datetime.fromtimestamp(question[10]).strftime('%d.%m.%Y %H:%M:%S'))} von {question[8]}")
+        self.lb_author_plus_date.setText(f"Frage erstellt am: {str(datetime.datetime.fromtimestamp(self.question[9]).strftime('%d.%m.%Y %H:%M:%S'))} von {self.question[7]}")
+        self.lb_last_editor_plus_date.setText(f"Frage zuletzt bearbeitet am: {str(datetime.datetime.fromtimestamp(self.question[10]).strftime('%d.%m.%Y %H:%M:%S'))} von {self.question[8]}")
+
+    def complain_question(self):        
+        if not self.lb_status.text():
+            try:
+                self.dialog.close()
+            except:
+                pass
+
+            self.dialog = ComplainingQuestionDialog(self.question, self.client, self)
+            self.dialog.show()
+        
+        else:
+            self.lb_status.setText("Report wurde schon gesendet")
+            self.lb_status.setStyleSheet("color: red;")
+
+
+class ComplainingQuestionDialog(QDialog):
+    def __init__(self, question, client, parent=None):
+        super().__init__(parent=parent)
+
+        self.question = question
+        self.client = client
+        self.parent = parent
+
+        self.init_layout()
+
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+        lb_question_number = QLabel("Frage beanstanden")
+        lb_question_number.setFont(QFont("Times New Roman", 30, QFont.Bold))
+        lb_question_number.setAlignment(Qt.AlignCenter)
+
+        hbox0.addWidget(lb_question_number)
+
+        hbox_space0 = QHBoxLayout()
+        hbox_space0.addWidget(QLabel())
+
+        hbox1 = QHBoxLayout()
+        lb_comment = QLabel("Kommentar:")
+        lb_comment.setFont(QFont("Times New Roman", 18, QFont.Bold))
+        hbox1.addWidget(lb_comment)
+        
+        hbox2 = QHBoxLayout()
+        self.te_comment = QTextEdit()
+        hbox2.addWidget(self.te_comment)
+
+        hbox_space1 = QHBoxLayout()
+        hbox_space1.addWidget(QLabel())
+
+        hbox3 = QHBoxLayout()
+        lb_suggested_answer = QLabel("Vorgeschlagene Anwort:")
+        lb_suggested_answer.setFont(QFont("Times New Roman", 18, QFont.Bold))
+        hbox3.addWidget(lb_suggested_answer)
+
+        hbox4 = QHBoxLayout()
+        self.te_suggested_answer = QTextEdit()
+        hbox4.addWidget(self.te_suggested_answer)
+
+        hbox5 = QHBoxLayout()
+        self.btn_send_complain = QPushButton("Senden")
+        self.btn_send_complain.clicked.connect(self.check_entries)
+        self.btn_cancel = QPushButton("Abbrechen")
+        self.btn_cancel.clicked.connect(self.close)
+        hbox5.addStretch()
+        hbox5.addWidget(self.btn_send_complain)
+        hbox5.addWidget(self.btn_cancel)
+
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space0)
+        vbox.addLayout(hbox1)        
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox_space1)
+        vbox.addLayout(hbox3)
+        vbox.addLayout(hbox4)
+        vbox.addLayout(hbox5)
+        vbox.addStretch()
+
+        self.setLayout(vbox)
+    
+    def check_entries(self):
+        check = True
+
+        if not self.te_comment.toPlainText().strip():            
+            self.te_comment.setStyleSheet("border: 1px solid red;")
+            check = False
+        else:
+            self.te_comment.setStyleSheet("border: 1px solid black;")
+        
+        if not self.te_suggested_answer.toPlainText().strip():            
+            self.te_suggested_answer.setStyleSheet("border: 1px solid red;")
+            check = False
+        else:
+            self.te_suggested_answer.setStyleSheet("border: 1px solid black;")
+
+        if check:
+            try:
+                send(self.client, 15)   # Code um eine beanstandete Frage einzureichen
+                recv(self.client)   # Pseudo
+
+                # Daten wie folgt senden (quiz_id, comment, suggested_answer, username)
+                data = (self.question[0], self.te_comment.toPlainText(),
+                        self.te_suggested_answer.toPlainText(), self.question[7])
+
+                send(self.client, data)
+                
+                response = recv(self.client)    # Nachricht, ob Eintrag geklappt hat
+                
+                
+                if response[0]:
+                    self.parent.lb_status.setText("Report wurde gesendet")
+                    self.parent.lb_status.setStyleSheet("color: green;")
+
+                else:
+                    self.parent.lb_status.setText("Report konnte nicht gesendet werden")
+                    self.parent.lb_status.setStyleSheet("color: red;")
+                
+                self.close()
+
+
+
+            except Exception as e:
+                self.client.close()
+                print(e)
 
 
 class FinishedTab(QWidget):
@@ -1197,6 +1334,7 @@ class EditUserWidget(QWidget):
             self.le_new_password.setDisabled(True)
             self.cb_admin.setDisabled(True)
 
+
 class ComplainingQuestionsWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__()
@@ -1205,7 +1343,7 @@ class ComplainingQuestionsWidget(QWidget):
 
         self.init_layout()
 
-    def init_layout():
+    def init_layout(self):
         vbox = QVBoxLayout()
 
         hbox0 = QHBoxLayout()
@@ -1218,24 +1356,153 @@ class ComplainingQuestionsWidget(QWidget):
         hbox_space.addWidget(QLabel())
 
         hbox1 = QHBoxLayout()
-        # self.tw_
+        hbox1.addWidget(QLabel("Beanstandete Frage:"))
+
+        hbox2 = QHBoxLayout()
+        self.cb_complained_questions = QComboBox()
+        hbox2.addWidget(self.cb_complained_questions)
 
         
-        hbox = QHBoxLayout()
+        hbox_main = QHBoxLayout()
+        
+        vbox_left = QVBoxLayout()
+        
+        hbox0_left = QHBoxLayout()
+        lb_complainer = QLabel("Beanstander")
+        self.le_complainer = QLineEdit()
+        self.le_complainer.setReadOnly(True)
+        hbox0_left.addWidget(lb_complainer)
+        hbox0_left.addWidget(self.le_complainer)
+        hbox0_left.addStretch()
+
+        hbox1_left = QHBoxLayout()
+        lb_date = QLabel("Datum")
+        self.le_date = QLineEdit()
+        self.le_date.setReadOnly(True)
+        hbox1_left.addWidget(lb_date)
+        hbox1_left.addWidget(self.le_date)
+        hbox1_left.addStretch()
+
+        hbox2_left = QHBoxLayout()
+        lb_comment = QLabel("Kommentar")
+        hbox2_left.addWidget(lb_comment)
+        hbox2_left.addStretch()
+
+        hbox3_left = QHBoxLayout()
+        self.te_comment = QTextEdit()
+        self.te_comment.setReadOnly(True)
+        hbox3_left.addWidget(self.te_comment)
+
+        hbox4_left = QHBoxLayout()
+        lb_correct_answer = QLabel("Richtige Antwort")
+        hbox4_left.addWidget(lb_correct_answer)
+
+        hbox5_left = QHBoxLayout()
+        self.te_correct_answer = QTextEdit()
+        self.te_correct_answer.setReadOnly(True)
+        hbox5_left.addWidget(self.te_correct_answer)
+
+        hbox6_left = QHBoxLayout()
+        lb_suggested_answer = QLabel("Vorgeschlagene Antwort")
+        hbox6_left.addWidget(lb_suggested_answer)
+
+        hbox7_left = QHBoxLayout()
+        self.te_suggested_answer = QTextEdit()
+        self.te_suggested_answer.setReadOnly(True)
+        hbox7_left.addWidget(self.te_suggested_answer)
+
+        hbox8_left = QHBoxLayout()
         self.btn_home = QPushButton("Home")
         self.btn_back = QPushButton("Zurück")
-        hbox.addStretch()
-        hbox.addWidget(self.btn_home)
-        hbox.addWidget(self.btn_back)
+        hbox8_left.addWidget(self.btn_home)
+        hbox8_left.addWidget(self.btn_back)
+        hbox8_left.addStretch()
+
+        vbox_left.addLayout(hbox0_left)
+        vbox_left.addLayout(hbox1_left)
+        vbox_left.addLayout(hbox2_left)
+        vbox_left.addLayout(hbox3_left)
+        vbox_left.addLayout(hbox4_left)
+        vbox_left.addLayout(hbox5_left)
+        vbox_left.addLayout(hbox6_left)
+        vbox_left.addLayout(hbox7_left)
+        vbox_left.addLayout(hbox8_left)
+        vbox_left.addStretch()
 
 
+        vbox_middle = QVBoxLayout()
+        vertical_line = QFrame()
+        vertical_line.setFrameShape(QFrame.VLine)
+        vertical_line.setFrameShadow(QFrame.Sunken)
+        vbox_middle.addWidget(vertical_line)
+
+
+        vbox_right = QVBoxLayout()
+        
+        hbox0_right = QHBoxLayout()
+        lb_question = QLabel("Frage")
+        lb_question.setFont(QFont("Times New Roman", 20, QFont.Bold))
+        hbox0_right.addWidget(lb_question)
+
+        hbox1_right = QHBoxLayout()
+        self.te_question = QTextEdit()
+        self.te_question.setReadOnly(True)
+        hbox1_right.addWidget(self.te_question)
+
+        hbox2_right = QHBoxLayout()
+        self.te_correct = QTextEdit()
+        self.te_correct.setStyleSheet("border: 3px solid green;")
+        hbox2_right.addWidget(self.te_correct)
+
+        hbox3_right = QHBoxLayout()
+        self.te_wrong1 = QTextEdit()
+        self.te_wrong1.setStyleSheet("border: 1px solid red;")
+        hbox3_right.addWidget(self.te_wrong1)
+
+        hbox4_right = QHBoxLayout()
+        self.te_wrong2 = QTextEdit()
+        self.te_wrong2.setStyleSheet("border: 1px solid red;")
+        hbox4_right.addWidget(self.te_wrong2)
+        
+        hbox5_right = QHBoxLayout()
+        self.te_wrong3 = QTextEdit()
+        self.te_wrong3.setStyleSheet("border: 1px solid red;")
+        hbox5_right.addWidget(self.te_wrong3)
+
+        hbox6_right = QHBoxLayout()
+        self.btn_save = QPushButton("Frage speichern")
+        self.btn_delete_complained_question = QPushButton("Beanstandete Frage löschen")
+        hbox6_right.addStretch()
+        hbox6_right.addWidget(self.btn_save)
+        hbox6_right.addWidget(self.btn_delete_complained_question)
+
+        
+
+        vbox_right.addLayout(hbox0_right)
+        vbox_right.addLayout(hbox1_right)
+        vbox_right.addLayout(hbox2_right)
+        vbox_right.addLayout(hbox3_right)
+        vbox_right.addLayout(hbox4_right)
+        vbox_right.addLayout(hbox5_right)
+        vbox_right.addLayout(hbox6_right)
+
+
+        hbox_main.addLayout(vbox_left)
+        hbox_main.addLayout(vbox_middle)
+        hbox_main.addLayout(vbox_right)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox_main)
         vbox.addStretch()
-        vbox.addWidget(hbox)
 
         self.parent.setLayout(vbox)
 
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    w = CreateAccountWidget()
-    w.show()
+    a = ComplainingQuestionDialog()
+    a.show()
     sys.exit(app.exec_())
