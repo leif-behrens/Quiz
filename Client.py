@@ -62,6 +62,8 @@ class Client(QMainWindow):
         self.questions = []
         self.answers = {}
         self.quiz_time_start = 0
+        self.complained_questions = []
+        self.complained_questions_current_primarykey = 0
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._refresh)
@@ -604,6 +606,108 @@ class Client(QMainWindow):
             
             print(e)
 
+    def _fill_complained_questions(self):
+        try:
+            index = self.complaining_questions_widget_main.cb_complained_questions.currentIndex()
+            self.complaining_questions_widget_main.le_complainer.setText(self.complained_questions[index][4])
+            self.complaining_questions_widget_main.le_date.setText(str(datetime.datetime.fromtimestamp(self.complained_questions[index][5]).strftime('%d.%m.%Y %H:%M:%S')))
+            self.complaining_questions_widget_main.te_comment.setPlainText(self.complained_questions[index][2])
+            self.complaining_questions_widget_main.te_correct_answer.setPlainText(self.complained_questions[index][7])
+            self.complaining_questions_widget_main.te_suggested_answer.setPlainText(self.complained_questions[index][3])
+
+            self.complaining_questions_widget_main.te_question.setPlainText(self.complained_questions[index][7])
+            self.complaining_questions_widget_main.te_wrong1.setPlainText(self.complained_questions[index][8])
+            self.complaining_questions_widget_main.te_wrong2.setPlainText(self.complained_questions[index][9])
+            self.complaining_questions_widget_main.te_wrong3.setPlainText(self.complained_questions[index][10])
+            self.complaining_questions_widget_main.te_correct.setPlainText(self.complained_questions[index][11])
+            self.complaining_questions_widget_main.le_category.setText(self.complained_questions[index][12])
+
+            self.complained_questions_current_primarykey = self.complained_questions[index][0]
+        
+        except Exception as e:
+            print(e)
+
+    def _save_complained_question(self, primarykey):
+        if self.complaining_questions_widget_main.cb_complained_questions.currentIndex() > -1:
+            check_entry = True
+
+            if not self.complaining_questions_widget_main.te_correct.toPlainText().split():
+                check_entry = False
+                
+            if not self.complaining_questions_widget_main.te_wrong1.toPlainText().split():
+                check_entry = False
+
+            if not self.complaining_questions_widget_main.te_wrong2.toPlainText().split():
+                check_entry = False
+
+            if not self.complaining_questions_widget_main.te_wrong3.toPlainText().split():
+                check_entry = False
+            
+            if not check_entry:
+                self.complaining_questions_widget_main.lb_status.setText("Die Felder dürfen nicht leer sein")
+                self.complaining_questions_widget_main.lb_status.setStyleSheet("color: red;")
+            else:
+                try:
+                    send(self.client, 7)    # Editierte Frage speichern
+                    recv(self.client)   # Pseudo
+                    
+                    data = [self.complaining_questions_widget_main.te_question.toPlainText(),
+                            self.complaining_questions_widget_main.te_wrong1.toPlainText(),
+                            self.complaining_questions_widget_main.te_wrong2.toPlainText(),
+                            self.complaining_questions_widget_main.te_wrong3.toPlainText(),
+                            self.complaining_questions_widget_main.te_correct.toPlainText(),
+                            self.complaining_questions_widget_main.le_category.text(),
+                            self.login_widget_main.le_username.text(), primarykey]
+
+                    send(self.client, data)
+
+                    response = recv(self.client)
+
+                    if response[0]:
+                        self._delete_complain(primarykey)
+                    
+                    else:
+                        self.complaining_questions_widget_main.lb_status.setText(f"Konnte nicht gespeichert werden. Fehler: {e}")
+                        self.complaining_questions_widget_main.lb_status.setStyleSheet("color: red;")
+
+                except Exception as e:
+                        self.connected = False
+                        self.authenticated = False
+                        self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+                        self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+                        
+                        self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+                        self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+                        self.client.close()
+
+                        print(e)
+
+    def _delete_complain(self, primarykey):
+        try:
+            send(self.client, 17)   # Code um beanstandete Frage zu löschen
+            recv(self.client)   # Pseudo
+            send(self.client, (self.login_widget_main.le_username.text(), primarykey))   # Username und PK wird gesendet
+            
+            response = recv(self.client)
+
+            if response[0]:
+                self.show_complaining_questions()   # Somit wird refreshed
+            
+            else:
+                self.complaining_questions_widget_main.lb_status.setText(f"Beanstandete Frage konnte nicht gelöscht werden. Fehler: {response[1]}")
+
+        except Exception as e:
+                    self.connected = False
+                    self.authenticated = False
+                    self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+                    self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+                    
+                    self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+                    self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+                    self.client.close()
+
+                    print(e)
+
     def _refresh(self):
         self.home_widget_main.lb_status.clear()
         self.admin_panel_widget_main.lb_status.clear()
@@ -834,6 +938,10 @@ class Client(QMainWindow):
         self.complaining_questions_widget_main = ComplainingQuestionsWidget(self.complaining_questions_widget)
         self.complaining_questions_widget_main.btn_home.clicked.connect(self.show_home)
         self.complaining_questions_widget_main.btn_back.clicked.connect(self.show_admin_panel)
+        self.complaining_questions_widget_main.cb_complained_questions.currentIndexChanged.connect(self._fill_complained_questions)
+        
+        self.complaining_questions_widget_main.btn_save.clicked.connect(lambda: self._save_complained_question(self.complained_questions_current_primarykey))
+        self.complaining_questions_widget_main.btn_delete_complained_question.clicked.connect(lambda: self._delete_complain(self.complained_questions_current_primarykey))
 
         self.complaining_questions_widget.hide()
 
@@ -1106,19 +1214,31 @@ class Client(QMainWindow):
 
                 self.edit_question_widget_2.show()
                 
-                send(self.client, 6)    # Code um genau eine Frage mit den wichtigesten Informationen zu erhalten
-                recv(self.client) # Pseudo
-                send(self.client, (self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text(), self.login_widget_main.le_username.text()))
-                                
-                question = recv(self.client)
+                try:
+                    send(self.client, 6)    # Code um genau eine Frage mit den wichtigesten Informationen zu erhalten
+                    recv(self.client) # Pseudo
+                    send(self.client, (self.edit_question_widget_1_main.tw_edit_question.item(self.edit_question_widget_1_main.tw_edit_question.currentRow(), 0).text(), self.login_widget_main.le_username.text()))
+                                    
+                    question = recv(self.client)
 
-                self.edit_question_widget_2_main.le_edit_question.setText(str(question[0]))
-                self.edit_question_widget_2_main.le_edit_wrong_answer_1.setText(str(question[1]))
-                self.edit_question_widget_2_main.le_edit_wrong_answer_2.setText(str(question[2]))
-                self.edit_question_widget_2_main.le_edit_wrong_answer_3.setText(str(question[3]))
-                self.edit_question_widget_2_main.le_edit_correct_answer.setText(str(question[4]))
-                self.edit_question_widget_2_main.le_edit_category.setText(str(question[5])) 
-            
+                    self.edit_question_widget_2_main.le_edit_question.setText(str(question[0]))
+                    self.edit_question_widget_2_main.le_edit_wrong_answer_1.setText(str(question[1]))
+                    self.edit_question_widget_2_main.le_edit_wrong_answer_2.setText(str(question[2]))
+                    self.edit_question_widget_2_main.le_edit_wrong_answer_3.setText(str(question[3]))
+                    self.edit_question_widget_2_main.le_edit_correct_answer.setText(str(question[4]))
+                    self.edit_question_widget_2_main.le_edit_category.setText(str(question[5])) 
+                
+                except Exception as e:
+                    self.connected = False
+                    self.authenticated = False
+                    self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+                    self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+                    
+                    self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+                    self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+                    self.client.close()
+
+                    print(e)
             else:
                 print("Fehlende Rechte")
 
@@ -1247,6 +1367,45 @@ class Client(QMainWindow):
         
         self.complaining_questions_widget.show()
 
+        try:
+            send(self.client, 16)
+            recv(self.client)   # Pseudo
+            send(self.client, self.login_widget_main.le_username.text())    # Username wird gesendet
+            self.complained_questions = recv(self.client)
+
+            self.complaining_questions_widget_main.cb_complained_questions.clear()
+            self.complaining_questions_widget_main.le_complainer.clear()
+            self.complaining_questions_widget_main.le_date.clear()
+            self.complaining_questions_widget_main.te_comment.clear()
+            self.complaining_questions_widget_main.te_correct_answer.clear()
+            self.complaining_questions_widget_main.te_suggested_answer.clear()
+
+            self.complaining_questions_widget_main.lb_status.clear()
+            self.complaining_questions_widget_main.te_question.clear()
+            self.complaining_questions_widget_main.te_correct.clear()
+            self.complaining_questions_widget_main.te_wrong1.clear()
+            self.complaining_questions_widget_main.te_wrong2.clear()
+            self.complaining_questions_widget_main.te_wrong3.clear()
+            self.complaining_questions_widget_main.le_category.clear()
+
+            for i in self.complained_questions:
+                self.complaining_questions_widget_main.cb_complained_questions.addItem(i[7])
+
+
+
+        except Exception as e:
+            self.connected = False
+            self.authenticated = False
+            self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+            self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+            
+            self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+            self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+            self.client.close()
+            self.show_home()
+
+            print(e)
+
     def resizeEvent(self, event):
         self.width = self.frameGeometry().width()
         self.height = self.frameGeometry().height()
@@ -1264,6 +1423,10 @@ class Client(QMainWindow):
         self.admin_panel_widget.resize(self.width, self.height-25)
         self.edit_user_widget.resize(self.width, self.height-25)
         self.complaining_questions_widget.resize(self.width, self.height-25)
+
+    def closeEvent(self, event):
+        super().closeEvent(event)
+        self.client.close()
 
 
 if __name__ == "__main__":

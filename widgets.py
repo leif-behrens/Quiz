@@ -1442,7 +1442,9 @@ class ComplainingQuestionsWidget(QWidget):
         hbox0_right = QHBoxLayout()
         lb_question = QLabel("Frage")
         lb_question.setFont(QFont("Times New Roman", 20, QFont.Bold))
+        self.lb_status = QLabel()
         hbox0_right.addWidget(lb_question)
+        hbox0_right.addWidget(self.lb_status)
 
         hbox1_right = QHBoxLayout()
         self.te_question = QTextEdit()
@@ -1470,11 +1472,17 @@ class ComplainingQuestionsWidget(QWidget):
         hbox5_right.addWidget(self.te_wrong3)
 
         hbox6_right = QHBoxLayout()
+        lb_category = QLabel("Kategorie")
+        self.le_category = QLineEdit()
+        hbox6_right.addWidget(lb_category)
+        hbox6_right.addWidget(self.le_category)
+
+        hbox7_right = QHBoxLayout()
         self.btn_save = QPushButton("Frage speichern")
         self.btn_delete_complained_question = QPushButton("Beanstandete Frage löschen")
-        hbox6_right.addStretch()
-        hbox6_right.addWidget(self.btn_save)
-        hbox6_right.addWidget(self.btn_delete_complained_question)
+        hbox7_right.addStretch()
+        hbox7_right.addWidget(self.btn_save)
+        hbox7_right.addWidget(self.btn_delete_complained_question)
 
         
 
@@ -1485,6 +1493,7 @@ class ComplainingQuestionsWidget(QWidget):
         vbox_right.addLayout(hbox4_right)
         vbox_right.addLayout(hbox5_right)
         vbox_right.addLayout(hbox6_right)
+        vbox_right.addLayout(hbox7_right)
 
 
         hbox_main.addLayout(vbox_left)

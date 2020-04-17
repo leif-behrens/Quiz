@@ -342,6 +342,19 @@ class QuizDatabase:
         except Exception as e:
             return False, e
 
+    def delete_complain(self, primarykey):
+        query = """
+        DELETE FROM complained_questions WHERE id = ?
+        """
+
+        try:
+            self._cur.execute(query, (primarykey,))
+            self._conn.commit()
+            return True, ""
+        
+        except Exception as e:
+            return False, e
+
 
     def __del__(self):
         self._conn.close()

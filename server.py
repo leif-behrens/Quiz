@@ -149,9 +149,9 @@ class Server:
 
                     quiz = QuizDatabase("Database/quiz.db", updated[-2])
 
-                    executed = quiz.change_question(*updated)
+                    response = quiz.change_question(*updated)
                     
-                    send(client, executed)
+                    send(client, response)
 
                 elif data == 8:
                     # Quiz Resultate in Datenbank schreiben
@@ -301,7 +301,7 @@ class Server:
                         person._conn.close()
 
                 elif data == 15:
-                    # Beanstandete Frage
+                    # Beanstandete Frage hinzufügen
                     send(client, "")
 
                     data = recv(client)
@@ -311,6 +311,41 @@ class Server:
 
                     send(client, insert)
                     quiz._conn.close()
+
+                elif data == 16:
+                    # Beanstandete Fragen erhalten
+                    send(client, "")
+
+                    username = recv(client)
+                    
+                    quiz = QuizDatabase("Database/quiz.db", username)
+
+                    query = """
+                    SELECT complained_questions.*, quiz.*
+                    FROM complained_questions
+                    INNER JOIN quiz
+                    ON complained_questions.quiz_id = quiz.quiz_id;
+                    """
+
+                    quiz._cur.execute(query)
+
+                    data = quiz._cur.fetchall()
+
+                    send(client, data)
+                    quiz._conn.close()
+
+                elif data == 17:
+                    # Lösche beanstandete Frage
+                    send(client, "")
+                    username, primarykey = recv(client)
+
+                    quiz = QuizDatabase("Database/quiz.db", username)
+                    delete = quiz.delete_complain(primarykey)
+
+                    send(client, delete)
+
+                    quiz._conn.close()
+
 
             except Exception as e:
                 client.close()
