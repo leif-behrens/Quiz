@@ -11,7 +11,7 @@ def send(_socket, obj):
     _socket.send(msg_header)
 
 
-def recv(_socket, chunksize=32):
+def recv(_socket, chunksize=512):
     full_msg = b""
     new_msg = True
 
