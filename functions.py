@@ -1,4 +1,6 @@
 import pickle
+import os
+import csv
 
 HEADER = 20
 FORMAT = "utf-8"
@@ -29,3 +31,19 @@ def recv(_socket, chunksize=512):
 
         if len(full_msg) - HEADER == msg_len:
             return pickle.loads(full_msg[HEADER:])
+
+
+def from_csv(_file, _delimiter):
+    if os.path.isfile(_file):
+        try:
+            with open(_file) as f:
+                reader = csv.reader(f, delimiter=_delimiter)
+                data = [d for d in reader]
+
+                return data
+
+        except:
+            return None
+    
+    else:
+        return None
