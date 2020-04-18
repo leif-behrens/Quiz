@@ -17,7 +17,10 @@ from functions import *
 
 class Server:
     def __init__(self):
-        
+                
+        Path("./Database").mkdir(parents=True, exist_ok=True)
+        Path("./Config").mkdir(parents=True, exist_ok=True)
+
         if os.path.exists("Config/serversettings.json"):
             with open("Config/serversettings.json") as f:
                 config = json.load(f)
