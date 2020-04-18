@@ -65,22 +65,28 @@ class HomeWidget(QWidget):
         hbox6.addStretch()
 
         hbox7 = QHBoxLayout()
+        self.btn_profile = QPushButton("Mein Profil")
+        self.btn_profile.setFont(QFont("Times New Roman", 25, QFont.Cursive))
+        hbox7.addWidget(self.btn_profile)
+        hbox7.addStretch()
+
+        hbox8 = QHBoxLayout()
         self.lb_server_status = QLabel("Zurzeit mit keinem Server verbunden")
         self.lb_server_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
         self.lb_server_status.setStyleSheet("color: red")
-        hbox7.addStretch()
-        hbox7.addWidget(self.lb_server_status)
+        hbox8.addStretch()
+        hbox8.addWidget(self.lb_server_status)
 
-        hbox8 = QHBoxLayout()
+        hbox9 = QHBoxLayout()
         self.lb_status = QLabel()
         self.lb_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
         
         self.lb_login_status = QLabel("Nicht angemeldet")
         self.lb_login_status.setFont(QFont("Times New Roman", 12, QFont.Bold))
         self.lb_login_status.setStyleSheet("color: red")
-        hbox8.addWidget(self.lb_status)
-        hbox8.addStretch()
-        hbox8.addWidget(self.lb_login_status)
+        hbox9.addWidget(self.lb_status)
+        hbox9.addStretch()
+        hbox9.addWidget(self.lb_login_status)
 
         vbox.addLayout(hbox0)
         vbox.addLayout(hbox_space)
@@ -90,9 +96,10 @@ class HomeWidget(QWidget):
         vbox.addLayout(hbox4)
         vbox.addLayout(hbox5)
         vbox.addLayout(hbox6)
-        vbox.addStretch()
         vbox.addLayout(hbox7)
+        vbox.addStretch()
         vbox.addLayout(hbox8)
+        vbox.addLayout(hbox9)
 
         self.parent.setLayout(vbox)
 
@@ -1055,6 +1062,7 @@ class CreateAccountWidget(QWidget):
         super().__init__()
 
         self.parent = parent
+        self.path = ["", ""]
 
         self.init_layout()
 
@@ -1151,15 +1159,42 @@ class CreateAccountWidget(QWidget):
         vbox1.addLayout(hbox4_v1)
         vbox1.addLayout(hbox5_v1)
 
+
+        hbox0 = QHBoxLayout()
+        self.btn_set_pic = QPushButton("Profilbild auswählen")
+        self.btn_set_pic.clicked.connect(self.get_pic)   
+        hbox0.addWidget(self.btn_set_pic)
+        hbox0.addStretch()
+
+        hbox1 = QHBoxLayout()
+        self.lb_profile_picture = QLabel()
+        self.lb_profile_picture.setFrameShape(QFrame.Panel)
+        self.lb_profile_picture.setFrameShadow(QFrame.Sunken)
+        hbox1.addWidget(self.lb_profile_picture)
+        hbox1.addStretch()
+
+
         hbox_main.addLayout(vbox0)
         hbox_main.addLayout(vbox1)
 
         vbox_main.addLayout(hbox_header)
         vbox_main.addStretch()
         vbox_main.addLayout(hbox_main)
+        vbox_main.addLayout(hbox0)
+        vbox_main.addLayout(hbox1)
         vbox_main.addStretch(2)
 
         self.parent.setLayout(vbox_main)
+
+    def get_pic(self):
+        self.path = QFileDialog.getOpenFileName(self, "Datei auswählen", "", "Bilddateien (*.jpg *.png)")
+        
+        if self.path[0]:            
+            pix = QPixmap(self.path[0])
+            pix = pix.scaledToWidth(150)
+            pix = pix.scaledToHeight(250)
+
+            self.lb_profile_picture.setPixmap(pix)
 
 
 class AdminpanelWidget(QWidget):
@@ -1479,7 +1514,7 @@ class ComplainingQuestionsWidget(QWidget):
 
         hbox7_right = QHBoxLayout()
         self.btn_save = QPushButton("Frage speichern")
-        self.btn_delete_complained_question = QPushButton("Beanstandete Frage löschen")
+        self.btn_delete_complained_question = QPushButton("Beanstandung löschen")
         hbox7_right.addStretch()
         hbox7_right.addWidget(self.btn_save)
         hbox7_right.addWidget(self.btn_delete_complained_question)
@@ -1509,9 +1544,144 @@ class ComplainingQuestionsWidget(QWidget):
         self.parent.setLayout(vbox)
 
 
+class ProfileWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__()
+
+        self.parent = parent
+        self.path = ["", ""]
+
+        self.init_layout()
+    
+    def init_layout(self):
+        vbox = QVBoxLayout()
+
+        hbox0 = QHBoxLayout()
+        lb_profile = QLabel("Profil")
+        lb_profile.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_profile.setAlignment(Qt.AlignCenter)
+        hbox0.addWidget(lb_profile)
+        
+        hbox_space = QHBoxLayout()
+        hbox_space.addWidget(QLabel())
+
+
+        hbox_main = QHBoxLayout()
+
+        vbox_left = QVBoxLayout()     
+
+        hbox0_left = QHBoxLayout()
+        lb_fname = QLabel("Vorname")
+        lb_fname.setFont(QFont("Times New Roman", 14, QFont.Bold))
+        hbox0_left.addWidget(lb_fname)
+
+        hbox1_left = QHBoxLayout()
+        lb_lname = QLabel("Nachname")
+        lb_lname.setFont(QFont("Times New Roman", 14, QFont.Bold))
+        hbox1_left.addWidget(lb_lname)
+
+        hbox2_left = QHBoxLayout()
+        lb_email = QLabel("Email")
+        lb_email.setFont(QFont("Times New Roman", 14, QFont.Bold))
+        hbox2_left.addWidget(lb_email)
+
+        hbox3_left = QHBoxLayout()
+        lb_password = QLabel("Neues Passwort")
+        lb_password.setFont(QFont("Times New Roman", 14, QFont.Bold))
+        hbox3_left.addWidget(lb_password)
+
+       
+        vbox_left.addLayout(hbox0_left)
+        vbox_left.addLayout(hbox1_left)
+        vbox_left.addLayout(hbox2_left)
+        vbox_left.addLayout(hbox3_left)
+        vbox_left.addStretch()
+
+
+        vbox_right = QVBoxLayout()
+
+        hbox0_center = QHBoxLayout()
+        self.le_fname = QLineEdit()
+        hbox0_center.addWidget(self.le_fname)
+        hbox0_center.addStretch()
+
+        hbox1_center = QHBoxLayout()        
+        self.le_lname = QLineEdit()
+        hbox1_center.addWidget(self.le_lname)
+        hbox1_center.addStretch()
+
+        hbox2_center = QHBoxLayout()
+        self.le_email = QLineEdit()
+        hbox2_center.addWidget(self.le_email)
+        hbox2_center.addStretch()
+
+        hbox3_center = QHBoxLayout()
+        self.le_new_password = QLineEdit()
+        hbox3_center.addWidget(self.le_new_password)
+        hbox3_center.addStretch()
+        
+        hbox4_center =QHBoxLayout()
+        self.btn_save = QPushButton("Speichern")
+        hbox4_center.addWidget(self.btn_save)
+        hbox4_center.addStretch()
+
+        vbox_right.addLayout(hbox0_center)
+        vbox_right.addLayout(hbox1_center)
+        vbox_right.addLayout(hbox2_center)
+        vbox_right.addLayout(hbox3_center)
+        vbox_right.addLayout(hbox4_center)
+        vbox_right.addStretch()
+
+        hbox_main.addLayout(vbox_left)
+        hbox_main.addLayout(vbox_right)
+
+                
+        hbox1 = QHBoxLayout()
+        self.lb_profile_picture = QLabel()
+        hbox1.addWidget(self.lb_profile_picture)
+
+        hbox2 = QHBoxLayout()
+        self.btn_change_pic = QPushButton("Bild ändern")
+        self.btn_change_pic.clicked.connect(self.get_pic)
+        self.btn_remove_pic = QPushButton("Bild entfernen")
+        self.btn_remove_pic.clicked.connect(self.remove_pic)
+        hbox2.addWidget(self.btn_change_pic)
+        hbox2.addWidget(self.btn_remove_pic)
+        hbox2.addStretch()
+
+
+        hbox = QHBoxLayout()
+        self.btn_home = QPushButton("Home")
+        hbox.addStretch()
+        hbox.addWidget(self.btn_home)
+
+        vbox.addLayout(hbox0)
+        vbox.addLayout(hbox_space)
+        vbox.addLayout(hbox_main)
+        vbox.addStretch()
+        vbox.addLayout(hbox1)
+        vbox.addLayout(hbox2)
+        vbox.addLayout(hbox)
+
+        # self.setLayout(vbox)
+        self.parent.setLayout(vbox)
+
+    def get_pic(self):
+        self.path = QFileDialog.getOpenFileName(self, "Datei auswählen", "", "Bilddateien (*.jpg *.png)")
+        
+        if self.path[0]:            
+            pix = QPixmap(self.path[0])
+            pix = pix.scaledToWidth(150)
+            pix = pix.scaledToHeight(250)
+
+            self.lb_profile_picture.setPixmap(pix)
+    
+    def remove_pic(self):
+        self.lb_profile_picture.clear()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    a = ComplainingQuestionDialog()
+    a = ProfileWidget()
     a.show()
     sys.exit(app.exec_())
