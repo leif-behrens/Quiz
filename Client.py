@@ -30,6 +30,7 @@ class Client(QMainWindow):
 
         Path("./Database").mkdir(parents=True, exist_ok=True)
         Path("./Config").mkdir(parents=True, exist_ok=True)
+        Path("./Temp").mkdir(parents=True, exist_ok=True)
         
         self.init_layouts()
 
@@ -510,9 +511,18 @@ class Client(QMainWindow):
             sha256 = hashlib.sha256()
             sha256.update(self.new_account_widget_main.le_password.text().encode())
 
+            pic = b""
+            pic_name = ""
+
+            if os.path.exists(self.new_account_widget_main.path[0]):
+                with open(self.new_account_widget_main.path[0], "rb") as f:
+                    pic = f.read()
+                    pic_name = os.path.basename(self.new_account_widget_main.path[0])
+            
+
             data = [self.new_account_widget_main.le_username.text(), sha256.hexdigest(), 
                     self.new_account_widget_main.le_fname.text(), self.new_account_widget_main.le_lname.text(),
-                    self.new_account_widget_main.le_email.text()]
+                    self.new_account_widget_main.le_email.text(), False, pic, pic_name]
             
             send(self.client, data)
 
@@ -751,7 +761,7 @@ class Client(QMainWindow):
             if self.edit_user_widget_main.cb_admin.currentText() == "Ja":
                 admin = "True"
             else:
-                admin = False
+                admin = "False"
 
             data = (sha256.hexdigest(), self.edit_user_widget_main.le_fname.text(),
                     self.edit_user_widget_main.le_lname.text(), 
@@ -784,6 +794,58 @@ class Client(QMainWindow):
             
             print(e)
 
+    def _update_profile(self):
+        try:
+            send(self.client, 18)   # Code um geänderte Daten zu speichern
+            recv(self.client)   # Pseudo
+
+            # hashed pw
+            sha256 = hashlib.sha256()
+            sha256.update(self.profile_widget_main.le_new_password.text().strip().encode())
+
+            pic = b""
+            picname = ""
+
+            if self.profile_widget_main.path[0]:
+                if os.path.exists(self.profile_widget_main.path[0]):
+                    with open(self.profile_widget_main.path[0], "rb") as f:
+                        pic = f.read()
+                    
+                    picname = os.path.basename(self.profile_widget_main.path[0])
+            
+            data = (sha256.hexdigest(), self.profile_widget_main.le_fname.text(),
+                    self.profile_widget_main.le_lname.text(), 
+                    self.profile_widget_main.le_email.text(),
+                    pic, picname,
+                    self.login_widget_main.le_username.text())
+
+            send(self.client, data)
+            
+            response = recv(self.client)
+
+            if response[0]:
+                self.show_home()
+                self.home_widget_main.lb_status.setText("Änderungen wurden durchgeführt.")
+                self.home_widget_main.lb_status.setStyleSheet("color: green;")
+            else:
+                self.show_home()
+                self.home_widget_main.lb_status.setText(f"Änderungen konnten nicht gespeichert werden. Fehler {response[1]}")
+                self.home_widget_main.lb_status.setStyleSheet("color: red;")
+
+            
+        except Exception as e:
+            self.connected = False
+            self.authenticated = False
+            self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+            self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+            
+            self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+            self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+            self.client.close()
+            
+            print(e)
+
+
     def init_layouts(self):
         self.home_layout()
         self.new_quiz_layout_1()
@@ -798,6 +860,7 @@ class Client(QMainWindow):
         self.admin_panel_layout()
         self.edit_user_layout()
         self.complaining_questions_layout()
+        self.profile_layout()
 
         self.show()
 
@@ -812,6 +875,7 @@ class Client(QMainWindow):
         self.home_widget_main.btn_edit_delete_question.clicked.connect(self.show_edit_question_1)
         self.home_widget_main.btn_login.clicked.connect(self.show_login)
         self.home_widget_main.btn_admin_panel.clicked.connect(self.show_admin_panel)
+        self.home_widget_main.btn_profile.clicked.connect(self.show_profile)
 
         self.home_widget.hide()
 
@@ -945,6 +1009,15 @@ class Client(QMainWindow):
 
         self.complaining_questions_widget.hide()
 
+    def profile_layout(self):
+        self.profile_widget = QWidget(self)
+        
+        self.profile_widget_main = ProfileWidget(self.profile_widget)
+        self.profile_widget_main.btn_home.clicked.connect(self.show_home)
+        self.profile_widget_main.btn_save.clicked.connect(self._update_profile)
+
+        self.profile_widget.hide()    
+
     def show_home(self):
         self.home_widget.hide()
         self.new_quiz_widget_1.hide()
@@ -959,6 +1032,7 @@ class Client(QMainWindow):
         self.admin_panel_widget.hide()
         self.edit_user_widget.hide()
         self.complaining_questions_widget.hide()
+        self.profile_widget.hide()
         
         self.home_widget.show()
 
@@ -988,6 +1062,7 @@ class Client(QMainWindow):
                 self.admin_panel_widget.hide()
                 self.edit_user_widget.hide()
                 self.complaining_questions_widget.hide()
+                self.profile_widget.hide()
                 
                 self.new_quiz_widget_1.show()
 
@@ -1007,6 +1082,7 @@ class Client(QMainWindow):
                 self.admin_panel_widget.hide()
                 self.edit_user_widget.hide()
                 self.complaining_questions_widget.hide()
+                self.profile_widget.hide()
 
                 self.new_quiz_widget_2.show()
 
@@ -1038,6 +1114,7 @@ class Client(QMainWindow):
         self.admin_panel_widget.hide()
         self.edit_user_widget.hide()
         self.complaining_questions_widget.hide()
+        self.profile_widget.hide()
         
         self.tab_result_main.show()
 
@@ -1101,23 +1178,25 @@ class Client(QMainWindow):
 
     def show_highscore(self):
         if self.connected:
-            self.home_widget.hide()
-            self.new_quiz_widget_1.hide()
-            self.new_quiz_widget_2.hide()
-            self.tab_result_main.hide()
-            self.highscore_widget.hide()
-            self.new_question_widget.hide()
-            self.edit_question_widget_1.hide()
-            self.edit_question_widget_2.hide()
-            self.login_widget.hide()
-            self.new_account_widget.hide()
-            self.admin_panel_widget.hide()
-            self.edit_user_widget.hide()
-            self.complaining_questions_widget.hide()
+            if self.authenticated:
+                self.home_widget.hide()
+                self.new_quiz_widget_1.hide()
+                self.new_quiz_widget_2.hide()
+                self.tab_result_main.hide()
+                self.highscore_widget.hide()
+                self.new_question_widget.hide()
+                self.edit_question_widget_1.hide()
+                self.edit_question_widget_2.hide()
+                self.login_widget.hide()
+                self.new_account_widget.hide()
+                self.admin_panel_widget.hide()
+                self.edit_user_widget.hide()
+                self.complaining_questions_widget.hide()
+                self.profile_widget.hide()
 
-            self.highscore_widget.show()
-            
-            self.fill_highscore()
+                self.highscore_widget.show()
+                
+                self.fill_highscore()
 
     def show_new_question(self):
         if self.connected:
@@ -1135,6 +1214,7 @@ class Client(QMainWindow):
                 self.admin_panel_widget.hide()
                 self.edit_user_widget.hide()
                 self.complaining_questions_widget.hide()
+                self.profile_widget.hide()
 
                 self.new_question_widget.show()
 
@@ -1164,6 +1244,7 @@ class Client(QMainWindow):
                 self.admin_panel_widget.hide()
                 self.edit_user_widget.hide()
                 self.complaining_questions_widget.hide()
+                self.profile_widget.hide()
 
                 self.edit_question_widget_1.show()
 
@@ -1211,6 +1292,7 @@ class Client(QMainWindow):
                 self.admin_panel_widget.hide()
                 self.edit_user_widget.hide()
                 self.complaining_questions_widget.hide()
+                self.profile_widget.hide()
 
                 self.edit_question_widget_2.show()
                 
@@ -1256,155 +1338,231 @@ class Client(QMainWindow):
         self.admin_panel_widget.hide()
         self.edit_user_widget.hide()
         self.complaining_questions_widget.hide()
+        self.profile_widget.hide()
         
         self.login_widget.show()
 
     def show_new_account(self):
-        self.home_widget.hide()
-        self.new_quiz_widget_1.hide()
-        self.new_quiz_widget_2.hide()
-        self.tab_result_main.hide()
-        self.highscore_widget.hide()
-        self.new_question_widget.hide()
-        self.edit_question_widget_1.hide()
-        self.edit_question_widget_2.hide()
-        self.login_widget.hide()
-        self.new_account_widget.hide()
-        self.admin_panel_widget.hide()
-        self.edit_user_widget.hide()
-        self.complaining_questions_widget.hide()
-        
-        self.new_account_widget.show()
+            self.home_widget.hide()
+            self.new_quiz_widget_1.hide()
+            self.new_quiz_widget_2.hide()
+            self.tab_result_main.hide()
+            self.highscore_widget.hide()
+            self.new_question_widget.hide()
+            self.edit_question_widget_1.hide()
+            self.edit_question_widget_2.hide()
+            self.login_widget.hide()
+            self.new_account_widget.hide()
+            self.admin_panel_widget.hide()
+            self.edit_user_widget.hide()
+            self.complaining_questions_widget.hide()
+            self.profile_widget.hide()
+            
+            self.new_account_widget.show()
 
-        self.new_account_widget_main.le_fname.setStyleSheet("border: 1px solid black")
-        self.new_account_widget_main.le_lname.setStyleSheet("border: 1px solid black")
-        self.new_account_widget_main.le_email.setStyleSheet("border: 1px solid black")
-        self.new_account_widget_main.le_username.setStyleSheet("border: 1px solid black")
-        self.new_account_widget_main.lb_status.clear()
-        self.new_account_widget_main.lb_status.setStyleSheet("color: black;")
+            self.new_account_widget_main.le_fname.setStyleSheet("border: 1px solid black")
+            self.new_account_widget_main.le_lname.setStyleSheet("border: 1px solid black")
+            self.new_account_widget_main.le_email.setStyleSheet("border: 1px solid black")
+            self.new_account_widget_main.le_username.setStyleSheet("border: 1px solid black")
+            self.new_account_widget_main.lb_status.clear()
+            self.new_account_widget_main.lb_status.setStyleSheet("color: black;")
+            self.new_account_widget_main.lb_profile_picture.clear()
 
     def show_admin_panel(self):
-        self.home_widget.hide()
-        self.new_quiz_widget_1.hide()
-        self.new_quiz_widget_2.hide()
-        self.tab_result_main.hide()
-        self.highscore_widget.hide()
-        self.new_question_widget.hide()
-        self.edit_question_widget_1.hide()
-        self.edit_question_widget_2.hide()
-        self.login_widget.hide()
-        self.new_account_widget.hide()
-        self.admin_panel_widget.hide()
-        self.edit_user_widget.hide()
-        self.complaining_questions_widget.hide()
-        
-        self.admin_panel_widget.show()
-        
-        self.admin_panel_widget_main.le_user.clear()
+        if self.connected:
+            if self.authenticated:
+                self.home_widget.hide()
+                self.new_quiz_widget_1.hide()
+                self.new_quiz_widget_2.hide()
+                self.tab_result_main.hide()
+                self.highscore_widget.hide()
+                self.new_question_widget.hide()
+                self.edit_question_widget_1.hide()
+                self.edit_question_widget_2.hide()
+                self.login_widget.hide()
+                self.new_account_widget.hide()
+                self.admin_panel_widget.hide()
+                self.edit_user_widget.hide()
+                self.complaining_questions_widget.hide()
+                self.profile_widget.hide()
+                
+                self.admin_panel_widget.show()
+                
+                self.admin_panel_widget_main.le_user.clear()
 
     def show_edit_user(self):
-        self.home_widget.hide()
-        self.new_quiz_widget_1.hide()
-        self.new_quiz_widget_2.hide()
-        self.tab_result_main.hide()
-        self.highscore_widget.hide()
-        self.new_question_widget.hide()
-        self.edit_question_widget_1.hide()
-        self.edit_question_widget_2.hide()
-        self.login_widget.hide()
-        self.new_account_widget.hide()
-        self.admin_panel_widget.hide()
-        self.edit_user_widget.hide()
-        self.complaining_questions_widget.hide()
-        
-        self.edit_user_widget.show()
-
-        try:
-            send(self.client, 13)   # Code um alle Infos des Users zu bekommen
-            recv(self.client)   # Pseudo
-            send(self.client, self.admin_panel_widget_main.le_user.text())  # User
-            data = recv(self.client)
-
-            self.edit_user_widget_main.le_username.setText(data[0])
-            self.edit_user_widget_main.le_fname.setText(data[2])
-            self.edit_user_widget_main.le_lname.setText(data[3])
-            self.edit_user_widget_main.le_email.setText(data[4])
-
-            
-            if eval(data[5]):
-                self.edit_user_widget_main.cb_admin.setCurrentText("Ja")
-            else:
-                self.edit_user_widget_main.cb_admin.setCurrentText("Nein")
+        if self.connected:
+            if self.authenticated:
+                self.home_widget.hide()
+                self.new_quiz_widget_1.hide()
+                self.new_quiz_widget_2.hide()
+                self.tab_result_main.hide()
+                self.highscore_widget.hide()
+                self.new_question_widget.hide()
+                self.edit_question_widget_1.hide()
+                self.edit_question_widget_2.hide()
+                self.login_widget.hide()
+                self.new_account_widget.hide()
+                self.admin_panel_widget.hide()
+                self.edit_user_widget.hide()
+                self.complaining_questions_widget.hide()
+                self.profile_widget.hide()
                 
+                self.edit_user_widget.show()
+
+                self.edit_user_widget_main.le_username.clear()
+                self.edit_user_widget_main.le_fname.clear()
+                self.edit_user_widget_main.le_lname.clear()
+                self.edit_user_widget_main.le_email.clear()
+                
+                try:
+                    send(self.client, 13)   # Code um alle Infos des Users zu bekommen
+                    recv(self.client)   # Pseudo
+                    send(self.client, self.admin_panel_widget_main.le_user.text())  # User
+                    data = recv(self.client)
+
+                    self.edit_user_widget_main.le_username.setText(data[0])
+                    self.edit_user_widget_main.le_fname.setText(data[2])
+                    self.edit_user_widget_main.le_lname.setText(data[3])
+                    self.edit_user_widget_main.le_email.setText(data[4])
+
+                    
+                    if eval(data[5]):
+                        self.edit_user_widget_main.cb_admin.setCurrentText("Ja")
+                    else:
+                        self.edit_user_widget_main.cb_admin.setCurrentText("Nein")
+                        
 
 
-        except Exception as e:
-            self.connected = False
-            self.authenticated = False
-            self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
-            self.home_widget_main.lb_server_status.setStyleSheet("color: red")
-            
-            self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
-            self.home_widget_main.lb_login_status.setStyleSheet("color: red")
-            self.client.close()
-            
-            print(e)
+                except Exception as e:
+                    self.connected = False
+                    self.authenticated = False
+                    self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+                    self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+                    
+                    self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+                    self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+                    self.client.close()
+                    
+                    print(e)
 
     def show_complaining_questions(self):
-        self.home_widget.hide()
-        self.new_quiz_widget_1.hide()
-        self.new_quiz_widget_2.hide()
-        self.tab_result_main.hide()
-        self.highscore_widget.hide()
-        self.new_question_widget.hide()
-        self.edit_question_widget_1.hide()
-        self.edit_question_widget_2.hide()
-        self.login_widget.hide()
-        self.new_account_widget.hide()
-        self.admin_panel_widget.hide()
-        self.edit_user_widget.hide()
-        self.complaining_questions_widget.hide()
-        
-        self.complaining_questions_widget.show()
+        if self.connected:
+            if self.authenticated:
+                self.home_widget.hide()
+                self.new_quiz_widget_1.hide()
+                self.new_quiz_widget_2.hide()
+                self.tab_result_main.hide()
+                self.highscore_widget.hide()
+                self.new_question_widget.hide()
+                self.edit_question_widget_1.hide()
+                self.edit_question_widget_2.hide()
+                self.login_widget.hide()
+                self.new_account_widget.hide()
+                self.admin_panel_widget.hide()
+                self.edit_user_widget.hide()
+                self.complaining_questions_widget.hide()
+                self.profile_widget.hide()
+                
+                self.complaining_questions_widget.show()
 
-        try:
-            send(self.client, 16)
-            recv(self.client)   # Pseudo
-            send(self.client, self.login_widget_main.le_username.text())    # Username wird gesendet
-            self.complained_questions = recv(self.client)
+                try:
+                    send(self.client, 16)
+                    recv(self.client)   # Pseudo
+                    send(self.client, self.login_widget_main.le_username.text())    # Username wird gesendet
+                    self.complained_questions = recv(self.client)
 
-            self.complaining_questions_widget_main.cb_complained_questions.clear()
-            self.complaining_questions_widget_main.le_complainer.clear()
-            self.complaining_questions_widget_main.le_date.clear()
-            self.complaining_questions_widget_main.te_comment.clear()
-            self.complaining_questions_widget_main.te_correct_answer.clear()
-            self.complaining_questions_widget_main.te_suggested_answer.clear()
+                    self.complaining_questions_widget_main.cb_complained_questions.clear()
+                    self.complaining_questions_widget_main.le_complainer.clear()
+                    self.complaining_questions_widget_main.le_date.clear()
+                    self.complaining_questions_widget_main.te_comment.clear()
+                    self.complaining_questions_widget_main.te_correct_answer.clear()
+                    self.complaining_questions_widget_main.te_suggested_answer.clear()
 
-            self.complaining_questions_widget_main.lb_status.clear()
-            self.complaining_questions_widget_main.te_question.clear()
-            self.complaining_questions_widget_main.te_correct.clear()
-            self.complaining_questions_widget_main.te_wrong1.clear()
-            self.complaining_questions_widget_main.te_wrong2.clear()
-            self.complaining_questions_widget_main.te_wrong3.clear()
-            self.complaining_questions_widget_main.le_category.clear()
+                    self.complaining_questions_widget_main.lb_status.clear()
+                    self.complaining_questions_widget_main.te_question.clear()
+                    self.complaining_questions_widget_main.te_correct.clear()
+                    self.complaining_questions_widget_main.te_wrong1.clear()
+                    self.complaining_questions_widget_main.te_wrong2.clear()
+                    self.complaining_questions_widget_main.te_wrong3.clear()
+                    self.complaining_questions_widget_main.le_category.clear()
 
-            for i in self.complained_questions:
-                self.complaining_questions_widget_main.cb_complained_questions.addItem(i[7])
+                    for i in self.complained_questions:
+                        self.complaining_questions_widget_main.cb_complained_questions.addItem(i[7])
 
 
 
-        except Exception as e:
-            self.connected = False
-            self.authenticated = False
-            self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
-            self.home_widget_main.lb_server_status.setStyleSheet("color: red")
-            
-            self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
-            self.home_widget_main.lb_login_status.setStyleSheet("color: red")
-            self.client.close()
-            self.show_home()
+                except Exception as e:
+                    self.connected = False
+                    self.authenticated = False
+                    self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+                    self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+                    
+                    self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+                    self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+                    self.client.close()
+                    self.show_home()
 
-            print(e)
+                    print(e)
+    
+    def show_profile(self):
+        if self.connected:
+            if self.authenticated:
+                self.home_widget.hide()
+                self.new_quiz_widget_1.hide()
+                self.new_quiz_widget_2.hide()
+                self.tab_result_main.hide()
+                self.highscore_widget.hide()
+                self.new_question_widget.hide()
+                self.edit_question_widget_1.hide()
+                self.edit_question_widget_2.hide()
+                self.login_widget.hide()
+                self.new_account_widget.hide()
+                self.admin_panel_widget.hide()
+                self.edit_user_widget.hide()
+                self.complaining_questions_widget.hide()
+                self.profile_widget.hide()
+                
+                self.profile_widget.show()
+
+                self.profile_widget_main.le_fname.clear()
+                self.profile_widget_main.le_lname.clear()
+                self.profile_widget_main.le_email.clear()
+                self.profile_widget_main.lb_profile_picture.clear()
+
+
+                try:
+                    send(self.client, 13)   # Code um alle Infos des Users zu erhalten
+                    recv(self.client)   # Pseudo
+                    send(self.client, self.login_widget_main.le_username.text())    # Username senden
+
+                    data = recv(self.client)
+
+                    self.profile_widget_main.le_fname.setText(str(data[2]))
+                    self.profile_widget_main.le_lname.setText(str(data[3]))
+                    self.profile_widget_main.le_email.setText(str(data[4]))
+
+                    if data[6]:
+                        with open(f"Temp/{data[7]}", "wb") as f:
+                            f.write(data[6])
+                    
+                        pix = QPixmap(f"Temp/{data[7]}")
+                        pix = pix.scaledToWidth(150)
+                        pix = pix.scaledToHeight(250)
+
+                        self.profile_widget_main.lb_profile_picture.setPixmap(pix)
+
+                
+                except Exception as e:
+                    self.connected = False
+                    self.authenticated = False
+                    self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+                    self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+                    
+                    self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+                    self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+                    self.client.close()
+                    self.show_home()
 
     def resizeEvent(self, event):
         self.width = self.frameGeometry().width()
@@ -1423,6 +1581,7 @@ class Client(QMainWindow):
         self.admin_panel_widget.resize(self.width, self.height-25)
         self.edit_user_widget.resize(self.width, self.height-25)
         self.complaining_questions_widget.resize(self.width, self.height-25)
+        self.profile_widget.resize(self.width, self.height-25)
 
     def closeEvent(self, event):
         super().closeEvent(event)
