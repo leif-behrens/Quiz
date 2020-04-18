@@ -28,7 +28,6 @@ class Client(QMainWindow):
         self.width = self.frameGeometry().width()
         self.height = self.frameGeometry().height()
 
-        Path("./Database").mkdir(parents=True, exist_ok=True)
         Path("./Config").mkdir(parents=True, exist_ok=True)
         Path("./Temp").mkdir(parents=True, exist_ok=True)
         
