@@ -17,7 +17,9 @@ class PersonDatabase:
             f_name TEXT,
             l_name TEXT,
             email TEXT,
-            admin TEXT
+            admin TEXT,
+            picture BLOB,
+            picname TEXT
         )
         """
         
@@ -38,9 +40,12 @@ class PersonDatabase:
         self._cur.execute(query)
 
         query = """
-        INSERT INTO user (username, password, admin) VALUES (
+        INSERT INTO user (username, password, f_name, l_name, email, admin) VALUES (
             'admin', 
             '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918', 
+            '',
+            '',
+            '',
             'True'
             )
         """
@@ -52,19 +57,19 @@ class PersonDatabase:
 
         self._conn.commit()
 
-    def new_user(self, username, password_hash, f_name, l_name, email, admin=False):
+    def new_user(self, username, password_hash, f_name, l_name, email, admin, picture, picname):
         # Check if username exists
         exists = self._cur.execute("SELECT * FROM user WHERE username = ?", (username,))
 
         if exists.fetchone() is None:
             query = """
-            INSERT INTO user (username, password, f_name, l_name, email, admin) VALUES (
-                ?, ?, ?, ?, ?, ?
+            INSERT INTO user (username, password, f_name, l_name, email, admin, picture, picname) VALUES (
+                ?, ?, ?, ?, ?, ?, ?, ?
             )
             """
 
             try:
-                self._cur.execute(query, (username, password_hash, f_name, l_name, email, str(admin)))
+                self._cur.execute(query, (username, password_hash, f_name, l_name, email, str(admin), picture, picname))
                 self._conn.commit()
                 return True, ""
 
