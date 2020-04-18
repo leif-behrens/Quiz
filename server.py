@@ -196,6 +196,7 @@ class Server:
                     send(client, new_user)
 
                 elif data == 10:
+                    # Frage löschen
                     send(client, "")
                     username, pk = recv(client)
 
@@ -208,6 +209,7 @@ class Server:
                     quiz._conn.close()
 
                 elif data == 11:
+                    # Alle Kategorien erhalten
                     send(client, "")
                     username = recv(client)
 
@@ -345,6 +347,53 @@ class Server:
                     send(client, delete)
 
                     quiz._conn.close()
+
+                elif data == 18:
+                    # Editierte Userdaten speichern
+                    send(client, "")
+                    data = recv(client) # Erhalte Tupel (password, f_name, l_name, email, pic, picname, username)
+                                        
+                    person = PersonDatabase("Database/user.db")
+                    
+                    try:
+                        # Wenn kein neues Passwort gesetzt wird, wird dieses auch nicht upgedatet
+                        # Der Hash steht für eine leere Zeichenkette
+                        if data[0] == "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855": 
+                            query = """
+                            UPDATE user 
+                            SET
+                                f_name = ?, 
+                                l_name = ?, 
+                                email = ?,
+                                picture = ?,
+                                picname = ?
+                            WHERE username = ?
+                            """
+
+                            person._cur.execute(query, data[1:])
+                        
+                        else:
+                            query = """
+                            UPDATE user 
+                            SET
+                                f_name = ?, 
+                                l_name = ?, 
+                                email = ?,
+                                picture = ?,
+                                picname = ?
+                            WHERE username = ?
+                            """
+
+                            person._cur.execute(query, data)
+                        
+                        person._conn.commit()
+                        send(client, (True, ""))
+
+                    except Exception as e:
+                        send(client, (False, e))
+                    
+                    finally:                        
+                        person._conn.close()
 
 
             except Exception as e:
