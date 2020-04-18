@@ -433,8 +433,8 @@ class ComplainingQuestionDialog(QDialog):
         hbox1.addWidget(lb_comment)
         
         hbox2 = QHBoxLayout()
-        self.te_comment = QTextEdit()
-        hbox2.addWidget(self.te_comment)
+        self.pte_comment = QPlainTextEdit()
+        hbox2.addWidget(self.pte_comment)
 
         hbox_space1 = QHBoxLayout()
         hbox_space1.addWidget(QLabel())
@@ -445,8 +445,8 @@ class ComplainingQuestionDialog(QDialog):
         hbox3.addWidget(lb_suggested_answer)
 
         hbox4 = QHBoxLayout()
-        self.te_suggested_answer = QTextEdit()
-        hbox4.addWidget(self.te_suggested_answer)
+        self.pte_suggested_answer = QPlainTextEdit()
+        hbox4.addWidget(self.pte_suggested_answer)
 
         hbox5 = QHBoxLayout()
         self.btn_send_complain = QPushButton("Senden")
@@ -473,17 +473,17 @@ class ComplainingQuestionDialog(QDialog):
     def check_entries(self):
         check = True
 
-        if not self.te_comment.toPlainText().strip():            
-            self.te_comment.setStyleSheet("border: 1px solid red;")
+        if not self.pte_comment.toPlainText().strip():            
+            self.pte_comment.setStyleSheet("border: 1px solid red;")
             check = False
         else:
-            self.te_comment.setStyleSheet("border: 1px solid black;")
+            self.pte_comment.setStyleSheet("border: 1px solid black;")
         
-        if not self.te_suggested_answer.toPlainText().strip():            
-            self.te_suggested_answer.setStyleSheet("border: 1px solid red;")
+        if not self.pte_suggested_answer.toPlainText().strip():            
+            self.pte_suggested_answer.setStyleSheet("border: 1px solid red;")
             check = False
         else:
-            self.te_suggested_answer.setStyleSheet("border: 1px solid black;")
+            self.pte_suggested_answer.setStyleSheet("border: 1px solid black;")
 
         if check:
             try:
@@ -491,8 +491,8 @@ class ComplainingQuestionDialog(QDialog):
                 recv(self.client)   # Pseudo
 
                 # Daten wie folgt senden (quiz_id, comment, suggested_answer, username)
-                data = (self.question[0], self.te_comment.toPlainText(),
-                        self.te_suggested_answer.toPlainText(), self.question[7])
+                data = (self.question[0], self.pte_comment.toPlainText(),
+                        self.pte_suggested_answer.toPlainText(), self.question[7])
 
                 send(self.client, data)
                 
