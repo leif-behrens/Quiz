@@ -667,6 +667,9 @@ class NewQuestionWidget(QWidget):
 
         self.parent = parent
 
+        self.data = None
+        self.path = ["", ""]
+
         self.init_layout()
 
     def init_layout(self):
@@ -747,18 +750,72 @@ class NewQuestionWidget(QWidget):
         hbox3.addWidget(lb_category)
         hbox3.addWidget(self.le_category)
 
+        hbox_save0 = QHBoxLayout()
+        self.btn_save0 = QPushButton("Speichern")
+        self.btn_save0.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+
+        self.btn_cancel0 = QPushButton("Abbrechen")
+        self.btn_cancel0.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+        hbox_save0.addWidget(self.btn_save0)
+        hbox_save0.addWidget(self.btn_cancel0)
+        hbox_save0.addStretch
+
+
+        hbox_or = QHBoxLayout()
+        
+        lb_or = QLabel("oder")
+        lb_or.setFont(QFont("Times New Roman", 40, QFont.Bold))
+        lb_or.setAlignment(Qt.AlignCenter)
+
+        hbox_or.addWidget(lb_or)
+
 
         hbox4 = QHBoxLayout()
-
-        self.btn_save = QPushButton("Speichern")
-        self.btn_save.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-
-        self.btn_cancel = QPushButton("Abbrechen")
-        self.btn_cancel.setFont(QFont("Times New Roman", 12, QFont.Cursive))
-    	
+        lb_delimiter = QLabel("Trennzeichen der csv-Datei")
+        self.cb_delimiter = QComboBox()
+        self.cb_delimiter.addItems([",", ";"])
+        self.btn_import_questions = QPushButton("Fragen aus csv-Datei importieren")
+        self.btn_import_questions.clicked.connect(self.get_csv)
+        hbox4.addWidget(lb_delimiter)
+        hbox4.addWidget(self.cb_delimiter)
+        hbox4.addWidget(self.btn_import_questions)
         hbox4.addStretch()
-        hbox4.addWidget(self.btn_save)
-        hbox4.addWidget(self.btn_cancel)
+
+
+        hbox5 = QHBoxLayout()
+        lb_chosen_file = QLabel("Ausgewählte Datei:")
+        self.lb_chosen_file = QLabel(self.path[0])
+        hbox5.addWidget(lb_chosen_file)
+        hbox5.addWidget(self.lb_chosen_file)
+        hbox5.addStretch()
+
+
+        hbox6 = QHBoxLayout()
+        lb_format_title = QLabel("Format der csv-Datei:")
+        description = """
+        Dies ist die Frage1?,richtige Antwort,falsch1,falsch2,falsch3,Kategorie
+        Dies ist die Frage2?,richtige Antwort,falsch1,falsch2,falsch3,Kategorie
+        """
+        lb_format_description = QLabel(description)
+        hbox6.addWidget(lb_format_title)
+        hbox6.addWidget(lb_format_description)
+        hbox6.addStretch()
+
+        hbox7 = QHBoxLayout()
+        self.lb_status = QLabel()
+        hbox7.addWidget(self.lb_status)
+
+
+        hbox8 = QHBoxLayout()
+
+        self.btn_save1 = QPushButton("Speichern")
+        self.btn_save1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+
+        self.btn_cancel1 = QPushButton("Abbrechen")
+        self.btn_cancel1.setFont(QFont("Times New Roman", 12, QFont.Cursive))
+    	
+        hbox8.addWidget(self.btn_save1)
+        hbox8.addWidget(self.btn_cancel1)
 
         vbox.addLayout(hbox)
         vbox.addLayout(hbox0)
@@ -766,11 +823,23 @@ class NewQuestionWidget(QWidget):
         vbox.addLayout(hbox1)
         vbox.addLayout(hbox2)
         vbox.addLayout(hbox3)
-        vbox.addStretch()
+        vbox.addLayout(hbox_save0)
+        vbox.addLayout(hbox_or)
         vbox.addLayout(hbox4)
+        vbox.addLayout(hbox5)
+        vbox.addLayout(hbox6)
+        vbox.addLayout(hbox7)
+        vbox.addStretch()
+        vbox.addLayout(hbox8)
         
         self.parent.setLayout(vbox)
 
+    def get_csv(self):
+        self.path = QFileDialog.getOpenFileName(self, "Datei auswählen", "", "CSV (*.csv)")
+        self.lb_chosen_file.setText(self.path[0])
+
+        self.data = csv_import(self.path[0], self.cb_delimiter.currentText())
+        
 
 class EditQuestionWidget1(QWidget):
     def __init__(self, parent=None):

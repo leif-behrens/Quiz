@@ -10,6 +10,7 @@ import hashlib
 import time
 import random
 import sys
+from pathlib import Path
 
 from database import *
 from functions import *
@@ -397,6 +398,17 @@ class Server:
                     
                     finally:                        
                         person._conn.close()
+
+                elif data == 19:
+                    # Neue Fragen hinzufügen
+                    send(client, "")
+
+                    username, data = recv(client)
+
+                    quiz = QuizDatabase("Database/quiz.db", username)
+                    insert = quiz.new_questions(data)
+
+                    send(client, insert)
 
 
             except Exception as e:

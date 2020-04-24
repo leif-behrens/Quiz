@@ -33,10 +33,10 @@ def recv(_socket, chunksize=512):
             return pickle.loads(full_msg[HEADER:])
 
 
-def from_csv(_file, _delimiter):
-    if os.path.isfile(_file):
+def csv_import(_path, _delimiter):
+    if os.path.isfile(_path):
         try:
-            with open(_file) as f:
+            with open(_path) as f:
                 reader = csv.reader(f, delimiter=_delimiter)
                 data = [d for d in reader]
 

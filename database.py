@@ -254,6 +254,40 @@ class QuizDatabase:
         except Exception as e:
             return False, e
     
+    def new_questions(self, data):
+        
+        for i in data:
+            i.append(self.username)
+            i.append(self.username)
+            i.append(int(time.time()))
+            i.append(int(time.time()))
+        
+        print(data)
+
+        query ="""
+        INSERT INTO quiz (
+            question,
+            correct_answer,
+            wrong_answer_1,
+            wrong_answer_2,
+            wrong_answer_3,
+            category,
+            author,
+            editor,
+            timestamp_creation,
+            timestamp_lastchange
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+
+        try:
+            self._cur.executemany(query, data)
+            self._conn.commit()
+            return True, ""
+
+        except Exception as e:
+            return False, e
+
+
     def change_question(self, *args):
         query = f"""
         UPDATE quiz 
@@ -360,14 +394,14 @@ class QuizDatabase:
         except Exception as e:
             return False, e
 
-
     def __del__(self):
         self._conn.close()
 
 
 if __name__ == "__main__":
-    quiz = QuizDatabase("Database/quiz.db", "admin")
-    a = quiz.delete_question(28)
-    print(a)
+    a = [['Was ist 1 + 1?', '2', '3', '4', '5', 'Mathe'], ['Im welchem Jahr ist 2020?', '2020', '2021', '2022', '2023', "Geo"]]
 
+    quiz = QuizDatabase("Database/quiz.db", "admin")
+    insert = quiz.new_questions(a)
+    print(insert)
 

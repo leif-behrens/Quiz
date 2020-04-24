@@ -231,6 +231,50 @@ class Client(QMainWindow):
                     else:
                         print("Falsche Eingabe")
 
+    def save_new_questions(self):
+        if self.new_question_widget_main.data is not None:
+            data = []
+            failed_counter = 0
+
+            for d in self.new_question_widget_main.data:
+                if len(d) == 6:
+                    data.append(d)
+                else:
+                    failed_counter += 1
+            
+            try:
+                send(self.client, 19)   # Code um neue Fragen hinzuzufügen
+                recv(self.client)   # Pseudo
+                send(self.client, (self.settings.get("usersettings").get("username"), data))
+                reply = recv(self.client)
+                
+                if reply[0]:
+                    self.new_question_widget_main.lb_status.setText("Import erfolgreich")
+                    self.new_question_widget_main.lb_status.setStyleSheet("color: green")
+                    self.new_question_widget_main.path = ""
+                    self.new_question_widget_main.data = None
+                
+                else:
+                    self.new_question_widget_main.lb_status.setText(f"Import fehlgeschlagen. Fehler: {reply[1]}")
+                    self.new_question_widget_main.lb_status.setStyleSheet("color: red")
+
+                    self.new_question_widget_main.path = ""
+                    self.new_question_widget_main.data = None
+
+            except Exception as e:
+                self.connected = False
+                self.authenticated = False
+                self.home_widget_main.lb_server_status.setText("Mit keinem Server verbunden")
+                self.home_widget_main.lb_server_status.setStyleSheet("color: red")
+                
+                self.home_widget_main.lb_login_status.setText("Nicht angemeldet")
+                self.home_widget_main.lb_login_status.setStyleSheet("color: red")
+                self.client.close()
+                print(e)
+        else:
+            self.new_question_widget_main.lb_status.setText("Es wurde keine Datei ausgewählt.")
+            self.new_question_widget_main.lb_status.setStyleSheet("color: red;")
+
     def save_edit_question(self):
         if self.connected:
             if self.authenticated:
@@ -844,7 +888,6 @@ class Client(QMainWindow):
             
             print(e)
 
-
     def init_layouts(self):
         self.home_layout()
         self.new_quiz_layout_1()
@@ -927,8 +970,12 @@ class Client(QMainWindow):
         
         self.new_question_widget_main = NewQuestionWidget(self.new_question_widget)
 
-        self.new_question_widget_main.btn_save.clicked.connect(self.save_new_question)
-        self.new_question_widget_main.btn_cancel.clicked.connect(self.show_home)
+        self.new_question_widget_main.btn_save0.clicked.connect(self.save_new_question)
+        self.new_question_widget_main.btn_cancel0.clicked.connect(self.show_home)
+
+        self.new_question_widget_main.btn_save1.clicked.connect(self.save_new_questions)
+        self.new_question_widget_main.btn_cancel1.clicked.connect(self.show_home)
+
 
 
         self.new_question_widget.hide()
@@ -1218,11 +1265,21 @@ class Client(QMainWindow):
                 self.new_question_widget.show()
 
                 self.new_question_widget_main.le_question.clear()
+                self.new_question_widget_main.le_question.setStyleSheet("border: 1px solid black")
                 self.new_question_widget_main.le_wrong_answer_1.clear()
+                self.new_question_widget_main.le_wrong_answer_1.setStyleSheet("border: 1px solid black")
                 self.new_question_widget_main.le_wrong_answer_2.clear()
+                self.new_question_widget_main.le_wrong_answer_2.setStyleSheet("border: 1px solid black")
                 self.new_question_widget_main.le_wrong_answer_3.clear()
+                self.new_question_widget_main.le_wrong_answer_3.setStyleSheet("border: 1px solid black")
                 self.new_question_widget_main.le_correct_answer.clear()
+                self.new_question_widget_main.le_correct_answer.setStyleSheet("border: 1px solid black")
                 self.new_question_widget_main.le_category.clear()
+                self.new_question_widget_main.le_category.setStyleSheet("border: 1px solid black")
+
+                self.new_question_widget_main.lb_chosen_file.clear()
+                self.new_question_widget_main.data = None
+                self.new_question_widget_main.lb_status.clear()
 
             else:
                 print("Fehlende Rechte")
